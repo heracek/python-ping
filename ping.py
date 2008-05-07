@@ -11,14 +11,29 @@ import bpf
 LOCAL_DEVICE = None
 LOCAL_MAC_ADDRESS = None
 
-def my_listen(fd):
-    fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK)
+def eth_packet_callback(eth_packet):
+    print 'packet received - len:', len(eth_packet)
+
+def my_listen(fd, packet_callback):
+    # fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK) # slows down CPU
     blen = bpf.bpf_get_blen(fd)
     while True:
         buffer = os.read(fd, blen)
         if len(buffer) > 0:
-            print bpf.get_headder(buffer[:18])
-
+            packet_index = 0
+            while packet_index < len(buffer):
+                header = bpf.get_header(buffer[packet_index:packet_index+18])
+                
+                if header.bh_caplen != header.bh_datalen:
+                    print 'Packet fraction at BPF level. - skipped'
+                    packet_index += bpf.BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
+                    continue
+                
+                data = buffer[packet_index + header.bh_hdrlen:packet_index + header.bh_caplen + header.bh_hdrlen]
+                
+                packet_callback(data)
+                
+                packet_index += bpf.BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
 
 def main():
     if len(sys.argv) != 3:
@@ -40,11 +55,12 @@ def main():
         fd = bpf.bpf_new()
         bpf.bpf_set_immediate(fd, 1)
         bpf.bpf_setif(fd, 'en1')
-        my_listen(fd)
+        
+        my_listen(fd, eth_packet_callback)
+        
         bpf.bpf_dispose(fd)
     except Exception, e:
         print e
-        print
         bpf.bpf_dispose(fd)
 
 if __name__ == '__main__':

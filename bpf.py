@@ -11,6 +11,9 @@ BIOCIMMEDIATE = -2147204496
 BIOCSETIF = -2145369492
 BIOCGBLEN = 1074020966
 
+BPF_ALIGNMENT = 4
+BPF_WORDALIGN = lambda x: (((x)+(BPF_ALIGNMENT-1))&~(BPF_ALIGNMENT-1))
+
 def bpf_new():
     for i in xrange(10):
         bpfdev = BPF_FORMAT % i
@@ -39,5 +42,18 @@ def bpf_setif(fd, en_name):
 def bpf_get_blen(fd):
     return struct.unpack('I', fcntl.ioctl(fd, BIOCGBLEN, "    "))[0]
 
-def get_headder(buffer):
-    return struct.unpack('IIIIH', buffer)
+class BPFHeader(object):
+    def __init__(self, unpacked):
+        self._unpacked = unpacked
+        self.tv_sec = unpacked[0]
+        self.tv_usec = unpacked[1]
+        self.bh_caplen = unpacked[2]
+        self.bh_datalen = unpacked[3]
+        self.bh_hdrlen = unpacked[4]
+    
+    def __str__(self):
+        return '''<BPFHeader tv_sec=%u tv_usec=%u bh_caplen=%u bh_datalen=%u bh_hdrlen=%u>''' % self._unpacked
+
+def get_header(buffer):
+    return BPFHeader(struct.unpack('IIIIH', buffer))
+    
