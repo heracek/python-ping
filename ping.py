@@ -7,12 +7,14 @@ import struct
 import sys
 
 import bpf
+from utils import bin2hex
+from wrappers import Ethernet
 
 LOCAL_DEVICE = None
 LOCAL_MAC_ADDRESS = None
 
 def eth_packet_callback(eth_packet):
-    print 'packet received - len:', len(eth_packet)
+    print 'packet received:', Ethernet(eth_packet)
 
 def my_listen(fd, packet_callback):
     # fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK) # slows down CPU
@@ -38,7 +40,7 @@ def my_listen(fd, packet_callback):
 def main():
     if len(sys.argv) != 3:
         if len(sys.argv) == 1:
-            sys.argv.extend(['en1', '192.168.1.1'])
+            sys.argv.extend(['en0', '192.168.1.1'])
             print 'using defaul args:', ' '.join(sys.argv)
         else:
             print 'usage: %s dev host' % sys.argv[0]
@@ -54,7 +56,7 @@ def main():
     try:
         fd = bpf.bpf_new()
         bpf.bpf_set_immediate(fd, 1)
-        bpf.bpf_setif(fd, 'en1')
+        bpf.bpf_setif(fd, LOCAL_DEVICE)
         
         my_listen(fd, eth_packet_callback)
         
