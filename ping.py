@@ -8,23 +8,33 @@ import sys
 
 import bpf
 from utils import bin2hex
-from wrappers import Ethernet
+from wrappers import Ethernet, IPv4
 
 LOCAL_DEVICE = None
 LOCAL_MAC_ADDRESS = None
 
-def eth_packet_callback(eth_packet):
-    print 'packet received:', Ethernet(eth_packet)
+def ip_packet_callback(eth_packet, ip_packet):
+    print eth_packet
+    print ip_packet.__str__(level = 1)
 
+def arp_packet_callback(arp_packet):
+    print 'ARP packet:', arp_packet
+
+def eth_packet_callback(eth_packet):
+    if eth_packet.type == Ethernet.TYPE_IP:
+        ip_packet_callback(eth_packet, IPv4(eth_packet.payload))
+    elif eth_packet.type == Ethernet.TYPE_ARP:
+        arp_packet_callback(eth_packet)
+    
 def my_listen(fd, packet_callback):
-    # fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK) # slows down CPU
+    # fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK) # nonblocking reading - slows down CPU
     blen = bpf.bpf_get_blen(fd)
     while True:
         buffer = os.read(fd, blen)
         if len(buffer) > 0:
             packet_index = 0
             while packet_index < len(buffer):
-                header = bpf.get_header(buffer[packet_index:packet_index+18])
+                header = bpf.get_header(buffer[packet_index:packet_index + 18])
                 
                 if header.bh_caplen != header.bh_datalen:
                     print 'Packet fraction at BPF level. - skipped'
@@ -33,14 +43,14 @@ def my_listen(fd, packet_callback):
                 
                 data = buffer[packet_index + header.bh_hdrlen:packet_index + header.bh_caplen + header.bh_hdrlen]
                 
-                packet_callback(data)
+                packet_callback(Ethernet(data))
                 
                 packet_index += bpf.BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
 
 def main():
     if len(sys.argv) != 3:
         if len(sys.argv) == 1:
-            sys.argv.extend(['en0', '192.168.1.1'])
+            sys.argv.extend(['en1', '192.168.1.106'])
             print 'using defaul args:', ' '.join(sys.argv)
         else:
             print 'usage: %s dev host' % sys.argv[0]

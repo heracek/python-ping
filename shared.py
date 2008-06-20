@@ -1,6 +1,6 @@
 import os
 
-from wrappers import MACAddres
+from fields import MACAddres
 
 IFCONFIG_MAC_ADDRESS_LINE = '\tether'
 

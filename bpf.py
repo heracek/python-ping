@@ -56,4 +56,4 @@ class BPFHeader(object):
 
 def get_header(buffer):
     return BPFHeader(struct.unpack('IIIIH', buffer))
-    
+
