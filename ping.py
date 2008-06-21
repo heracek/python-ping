@@ -8,16 +8,24 @@ import sys
 
 import bpf
 from utils import bin2hex
-from wrappers import Ethernet, IPv4
+from wrappers import Ethernet, IPv4, UDP
 
 LOCAL_DEVICE = None
 LOCAL_MAC_ADDRESS = None
 PACKET_COUNT = 1
 
+def udp_packet_callback(eth_packet, ip_packet, udp_packet):
+    print eth_packet
+    print ip_packet.__str__(level=1)
+    print udp_packet.__str__(level=2)
+    
 def ip_packet_callback(eth_packet, ip_packet):
     print 'packet #%d:' % PACKET_COUNT
-    print eth_packet
-    print ip_packet.__str__(level = 1)
+    if ip_packet.protocol == IPv4.PROTOCOL_UDP:
+        udp_packet_callback(eth_packet, ip_packet, UDP(ip_packet.payload))
+    else:
+        print eth_packet
+        print ip_packet.__str__(level=1)
 
 def arp_packet_callback(arp_packet):
     print 'packet #%d:' % PACKET_COUNT

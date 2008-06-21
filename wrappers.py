@@ -75,11 +75,13 @@ class Ethernet(Wrapper):
         ('data', 'B', fields.HexInt(2))
     ]
     
-    def __init__(self, eth_packet=None):
-        super(Ethernet, self).__init__(eth_packet)
-        self.payload = eth_packet[14:]
+    def __init__(self, raw_data=None):
+        super(Ethernet, self).__init__(raw_data)
+        self.payload = raw_data[14:]
 
 class IPv4(Wrapper):
+    
+    PROTOCOL_UDP = fields.HexIntClass(0x11, 2)
     
     _fields_ = [
         ('version__and__header_length', 'B', (
@@ -97,6 +99,25 @@ class IPv4(Wrapper):
         ('saddr', '!L', fields.IPAddress),
         ('daddr', '!L', fields.IPAddress),
     ]
+    
+    def __init__(self, raw_data=None):
+        super(IPv4, self).__init__(raw_data)
+        self.payload = raw_data[self.header_length * 4:]
+    
+
+class UDP(Wrapper):
+    
+    _fields_ = [
+        ('sport', '!H', int),
+        ('dport', '!H', int),
+        ('length', '!H', int),
+        ('checksum', '!H', fields.HexInt(4)),
+    ]
+    
+    def __init__(self, raw_data=None):
+        super(UDP, self).__init__(raw_data)
+        self.payload = raw_data[8:]
+        self.len = len(self.payload)
     
 
 #print Ethernet('\x01\x80\xc2\x00\x00\x00\x00\x1a\x92\x62\x31\x4c\x00\x2e\x42\x42\x03\x00\x00\x00\x00\x00\x80\x00\x00\x1a\x92\x62\x31\x4c\x01\x80\xc2')
