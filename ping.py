@@ -8,24 +8,26 @@ import sys
 
 import bpf
 from utils import bin2hex
-from wrappers import Ethernet, IPv4, UDP
+from wrappers import Ethernet, IPv4, UDP, DHCP
 
 LOCAL_DEVICE = None
 LOCAL_MAC_ADDRESS = None
 PACKET_COUNT = 1
 
+def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
+    print dhcp_packet
+    
 def udp_packet_callback(eth_packet, ip_packet, udp_packet):
-    print eth_packet
-    print ip_packet.__str__(level=1)
-    print udp_packet.__str__(level=2)
+    print udp_packet
+    if (udp_packet.sport, udp_packet.dport) in UDP.COMM_DHCP:
+        dhcp_packet_callback(eth_packet, ip_packet, udp_packet, DHCP(udp_packet.payload))        
     
 def ip_packet_callback(eth_packet, ip_packet):
     print 'packet #%d:' % PACKET_COUNT
+    print eth_packet
+    print ip_packet
     if ip_packet.protocol == IPv4.PROTOCOL_UDP:
         udp_packet_callback(eth_packet, ip_packet, UDP(ip_packet.payload))
-    else:
-        print eth_packet
-        print ip_packet.__str__(level=1)
 
 def arp_packet_callback(arp_packet):
     print 'packet #%d:' % PACKET_COUNT
@@ -65,7 +67,7 @@ def my_listen(fd, packet_callback):
 def main():
     if len(sys.argv) != 3:
         if len(sys.argv) == 1:
-            sys.argv.extend(['en0', '192.168.1.10'])
+            sys.argv.extend(['en1', '192.168.1.10'])
             print 'using defaul args:', ' '.join(sys.argv)
         else:
             print 'usage: %s dev host' % sys.argv[0]
