@@ -26,7 +26,7 @@ class Wrapper(object):
             * pr.:
                 ('flags__and__fragment_offset', '2s', ( # nacteme 2 byty
                     (3, fields.HexInt(1)),              # 'flags' ma 3 bity a je typu HexInt
-                    (13, int))),                        # 'fragment_offset' je 13-bitovy integer
+                    (13, fields.Int))),                        # 'fragment_offset' je 13-bitovy integer
         '''
         
         self._parent = parent
@@ -110,15 +110,15 @@ class IPv4(Wrapper):
     
     _fields_ = [
         ('version__and__header_length', 'B', (
-            (4, int),
-            (4, int))),
+            (4, fields.Int),
+            (4, fields.Int))),
         ('type_of_service', 'B', fields.HexInt(2)),
-        ('total_length', '!H', int),
+        ('total_length', '!H', fields.Int),
         ('identification', '!H', fields.HexInt(4)),
         ('flags__and__fragment_offset', '!H', (
             (3, fields.HexInt(1)),
-            (13, int))),
-        ('time_to_live', 'B', int),
+            (13, fields.Int))),
+        ('time_to_live', 'B', fields.Int),
         ('protocol', 'B', fields.HexInt(2)),
         ('header_checksum', '!H', fields.HexInt(4)),
         ('saddr', '!L', fields.IPAddress),
@@ -140,9 +140,9 @@ class UDP(Wrapper):
     )
     
     _fields_ = [
-        ('sport', '!H', int),
-        ('dport', '!H', int),
-        ('length', '!H', int),
+        ('sport', '!H', fields.Int),
+        ('dport', '!H', fields.Int),
+        ('length', '!H', fields.Int),
         ('checksum', '!H', fields.HexInt(4)),
     ]
     
@@ -218,11 +218,11 @@ class DHCP(Wrapper):
 class ICMP(Wrapper):
     
     _fields_ = [
-        ('type', 'B', int),
-        ('code', 'B', int),
+        ('type', 'B', fields.Int),
+        ('code', 'B', fields.Int),
         ('checksum', '!H', fields.HexInt(4)),
         ('id', '!H', fields.HexInt(4)),
-        ('sequence', '!H', int),
+        ('sequence', '!H', fields.Int),
     ]
     
     _LEVEL_ = 2

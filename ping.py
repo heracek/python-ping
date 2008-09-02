@@ -102,4 +102,8 @@ def main():
     bpf.bpf_dispose(fd)
     
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print
+        sys.exit(0)

@@ -13,7 +13,12 @@ class Int(Field):
         return str(self.val)
     
     def __eq__(self, other):
-        return self.val == self.val
+        if isinstance(other, int):
+            return self.val == other
+        return self.val == other.val
+    
+    def __mul__(self, other):
+        return self.val * other
     
     def raw_val(self, struct_fmt):
         return struct.pack(struct_fmt, self.val)

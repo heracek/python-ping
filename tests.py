@@ -49,6 +49,22 @@ __doc__ = """
 >>> int_1.raw_val('!H')
 '\\x08\\x06'
 
+>>> int_1 * 2
+4108
+
+>>> int_1 == 2054
+True
+>>> int_1 == 123
+False
+
+>>> int_2 = Int(123)
+>>> int_1 == int_2
+False
+
+>>> int_3 = Int(2054)
+>>> int_1 == int_3
+True
+
 """
 
 def _test():
