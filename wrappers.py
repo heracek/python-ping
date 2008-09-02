@@ -12,9 +12,9 @@ class Wrapper(object):
     
     _LEVEL_ = 0
     
-    def __init__(self, data=None, parent=None):
+    def __init__(self, raw_data=None, parent=None, data_dict=None):
         '''
-        Processes '_fields_' list and inits object's argumets by vals defined in data.
+        Processes '_fields_' list and inits object's argumets by vals defined in raw_data.
         
          * polozky nezarovana na cele byty je mozne take nacist
             * staci zvolit rozsah na cely pocet bytu
@@ -30,35 +30,48 @@ class Wrapper(object):
         '''
         
         self._parent = parent
-        if parent and data is None:
-            data = parent.payload
         
-        if data:
-            data_index = 0
+        if data_dict:
             for field in self._fields_:
                 name = field[0]
                 unpack_str = field[1]
                 _type = field[2]
-                size = struct.calcsize(unpack_str)
                 
-                if not name.startswith('_'):
-                    raw_val = struct.unpack(unpack_str, data[data_index:data_index + size])[0]
-                    splitted_names = name.split('__and__')
-                    if len(splitted_names) > 1:
-                        start_bit = size * 8
-                        for field_name, (num_bits, splitted_type) in zip(splitted_names, _type):
-                            shift = start_bit - num_bits
-                            splitted_raw_val = (raw_val >> shift) % (1 << num_bits)
+                val = data_dict[name]
+                if isinstance(val, int):
+                    val = _type(val)
+                
+                setattr(self, name, val)
+        else:
+            if parent and raw_data is None:
+                raw_data = parent.payload
+        
+            if raw_data:
+                data_index = 0
+                for field in self._fields_:
+                    name = field[0]
+                    unpack_str = field[1]
+                    _type = field[2]
+                    size = struct.calcsize(unpack_str)
+                
+                    if not name.startswith('_'):
+                        raw_val = struct.unpack(unpack_str, raw_data[data_index:data_index + size])[0]
+                        splitted_names = name.split('__and__')
+                        if len(splitted_names) > 1:
+                            start_bit = size * 8
+                            for field_name, (num_bits, splitted_type) in zip(splitted_names, _type):
+                                shift = start_bit - num_bits
+                                splitted_raw_val = (raw_val >> shift) % (1 << num_bits)
                         
-                            val = splitted_type(splitted_raw_val)
-                            self.__setattr__(field_name, val)
+                                val = splitted_type(splitted_raw_val)
+                                self.__setattr__(field_name, val)
                      
-                            start_bit -= num_bits
-                    else:                
-                        val = _type(raw_val)
-                        self.__setattr__(name, val)
+                                start_bit -= num_bits
+                        else:                
+                            val = _type(raw_val)
+                            self.__setattr__(name, val)
             
-                data_index += size
+                    data_index += size
     
     def __str__(self, level=None, parents=False):
         if level is None:
@@ -85,6 +98,19 @@ class Wrapper(object):
         
         return out
     
+    def raw_val(self):
+        raw_vals_list = []
+        for field in self._fields_:
+            name, unpack_str, _type = field
+            
+            val = getattr(self, name)
+            raw_val = val.raw_val(unpack_str)
+            
+            raw_vals_list.append(raw_val)
+        return ''.join(raw_vals_list)
+            
+            
+    
 class Ethernet(Wrapper):
     
     TYPE_IP = fields.HexIntClass(0x0800, 4)
@@ -94,14 +120,15 @@ class Ethernet(Wrapper):
         ('smac', '6s', fields.MACAddres),
         ('dmac', '6s', fields.MACAddres),
         ('type', '!H', fields.HexInt(4)),
-        ('data', 'B', fields.HexInt(2))
+#        ('data', 'B', fields.HexInt(2)),
     ]
     
     _LEVEL_ = 0
     
-    def __init__(self, raw_data=None):
-        super(Ethernet, self).__init__(raw_data)
-        self.payload = raw_data[14:]
+    def __init__(self, raw_data=None, data_dict=None):
+        super(Ethernet, self).__init__(raw_data, data_dict=data_dict)
+        if raw_data:
+            self.payload = raw_data[14:]
 
 class IPv4(Wrapper):
     
