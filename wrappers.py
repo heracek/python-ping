@@ -12,7 +12,7 @@ class Wrapper(object):
     
     _LEVEL_ = 0
     
-    def __init__(self, data=None):
+    def __init__(self, data=None, parent=None):
         '''
         Processes '_fields_' list and inits object's argumets by vals defined in data.
         
@@ -28,6 +28,11 @@ class Wrapper(object):
                     (3, fields.HexInt(1)),              # 'flags' ma 3 bity a je typu HexInt
                     (13, int))),                        # 'fragment_offset' je 13-bitovy integer
         '''
+        
+        self._parent = parent
+        if parent and data is None:
+            data = parent.payload
+        
         if data:
             data_index = 0
             for field in self._fields_:
@@ -55,7 +60,7 @@ class Wrapper(object):
             
                 data_index += size
     
-    def __str__(self, level=None):
+    def __str__(self, level=None, parents=False):
         if level is None:
             level = self._LEVEL_
         
@@ -70,9 +75,15 @@ class Wrapper(object):
                     field_str = "%s=%s" % (name, self.__getattribute__(name))
                     fields_arr.append(field_str)
         
-        return LEVEL_SEPARATOR * level + '<%s %s>' % (
+        
+        out = LEVEL_SEPARATOR * level + '<%s %s>' % (
             self.__class__.__name__,
             field_separator + field_separator.join(fields_arr))
+        
+        if parents and self._parent:
+            out = self._parent.__str__(parents=True) + '\n' + out
+        
+        return out
     
 class Ethernet(Wrapper):
     
@@ -95,6 +106,7 @@ class Ethernet(Wrapper):
 class IPv4(Wrapper):
     
     PROTOCOL_UDP = fields.HexIntClass(0x11, 2)
+    PROTOCOL_ICMP = fields.HexIntClass(0x01, 2)
     
     _fields_ = [
         ('version__and__header_length', 'B', (
@@ -115,9 +127,9 @@ class IPv4(Wrapper):
     
     _LEVEL_ = 1
     
-    def __init__(self, raw_data=None):
-        super(IPv4, self).__init__(raw_data)
-        self.payload = raw_data[self.header_length * 4:]
+    def __init__(self, parent):
+        super(IPv4, self).__init__(parent=parent)
+        self.payload = parent.payload[self.header_length * 4:]
     
 
 class UDP(Wrapper):
@@ -136,9 +148,9 @@ class UDP(Wrapper):
     
     _LEVEL_ = 2
     
-    def __init__(self, raw_data=None):
-        super(UDP, self).__init__(raw_data)
-        self.payload = raw_data[8:]
+    def __init__(self, parent):
+        super(UDP, self).__init__(parent=parent)
+        self.payload = parent.payload[8:]
         self.len = len(self.payload)
 
 class DHCPOption(object):
@@ -202,5 +214,17 @@ class DHCP(Wrapper):
     ]
     
     _LEVEL_ = 3
+
+class ICMP(Wrapper):
+    
+    _fields_ = [
+        ('type', 'B', int),
+        ('code', 'B', int),
+        ('checksum', '!H', fields.HexInt(4)),
+        ('id', '!H', fields.HexInt(4)),
+        ('sequence', '!H', int),
+    ]
+    
+    _LEVEL_ = 2
 
 #print Ethernet('\x01\x80\xc2\x00\x00\x00\x00\x1a\x92\x62\x31\x4c\x00\x2e\x42\x42\x03\x00\x00\x00\x00\x00\x80\x00\x00\x1a\x92\x62\x31\x4c\x01\x80\xc2')
