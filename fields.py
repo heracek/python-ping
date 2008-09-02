@@ -5,12 +5,25 @@ class Field(object):
     def raw_val(self, struct_fmt=None):
         raise NotImplementedError('raw_val() not implemented in %s.' % self.__class__.__name__)
 
+class Int(Field):
+    def __init__(self, val):
+        self.val = val
+    
+    def __str__(self):
+        return str(self.val)
+    
+    def __eq__(self, other):
+        return self.val == self.val
+    
+    def raw_val(self, struct_fmt):
+        return struct.pack(struct_fmt, self.val)
+
 def HexInt(width):
     def CreateHexInt(val):
         return HexIntClass(val, width)
     return CreateHexInt
 
-class HexIntClass(Field):
+class HexIntClass(Int):
     def __init__(self, val, width):
         self.val = val
         self.width = width
@@ -18,13 +31,6 @@ class HexIntClass(Field):
     def __str__(self):
         format = '0x%%0%dx' % self.width
         return format % self.val
-    
-    def __eq__(self, other):
-        return self.val == other.val
-    
-    def raw_val(self, struct_fmt):
-        return struct.pack(struct_fmt, self.val)
-
 
 class MACAddres(Field):
     def __init__(self, bin_val=None, colon_hex_str=None, pure_hex_str=None, num_val=None):
