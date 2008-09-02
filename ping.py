@@ -22,7 +22,7 @@ def print_debug(what, force=False):
         print what.__str__(parents=True)
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
-    print_debug(dhcp_packet, force=True)
+    print_debug(dhcp_packet, force=False)
     
 def udp_packet_callback(eth_packet, ip_packet, udp_packet):
     print_debug(udp_packet)
@@ -80,7 +80,7 @@ def my_listen(fd, packet_callback):
 def main():
     if len(sys.argv) != 3:
         if len(sys.argv) == 1:
-            sys.argv.extend(['en0', '192.168.1.4'])
+            sys.argv.extend(['en1', '192.168.1.1'])
             print 'using defaul args:', ' '.join(sys.argv)
         else:
             print 'usage: %s dev host' % sys.argv[0]
