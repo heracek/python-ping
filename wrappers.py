@@ -26,7 +26,7 @@ class Wrapper(object):
             * pr.:
                 ('flags__and__fragment_offset', '2s', ( # nacteme 2 byty
                     (3, fields.HexInt(1)),              # 'flags' ma 3 bity a je typu HexInt
-                    (13, fields.Int))),                        # 'fragment_offset' je 13-bitovy integer
+                    (13, fields.Int))),                 # 'fragment_offset' je 13-bitovy integer
         '''
         
         self._parent = parent
@@ -37,11 +37,18 @@ class Wrapper(object):
                 unpack_str = field[1]
                 _type = field[2]
                 
-                val = data_dict[name]
-                if isinstance(val, int):
-                    val = _type(val)
+                splitted_names = name.split('__and__')
                 
-                setattr(self, name, val)
+                for (i, splitted_name) in enumerate(splitted_names):
+                    val = data_dict[splitted_name]
+                    
+                    if isinstance(val, int):
+                        if len(splitted_names) > 1:
+                            val = _type[i][1](val)
+                        else:
+                            val = _type(val)
+                    
+                    setattr(self, splitted_name, val)
         else:
             if parent and raw_data is None:
                 raw_data = parent.payload
@@ -100,17 +107,38 @@ class Wrapper(object):
     
     def raw_val(self):
         raw_vals_list = []
+        
+        if self._parent:
+            raw_vals_list = [self._parent.raw_val()]
+        
         for field in self._fields_:
             name, unpack_str, _type = field
             
-            val = getattr(self, name)
+            splitted_names = name.split('__and__')
+            if len(splitted_names) > 1:
+                size = struct.calcsize(unpack_str)
+                start_bit = size * 8
+                val = 0
+                
+                for field_name, (num_bits, splitted_type) in zip(splitted_names, _type):
+                    shift = start_bit - num_bits
+                    
+                    splitted_raw_val = getattr(self, field_name)
+                    val |= (splitted_raw_val << shift)
+                    
+                    start_bit -= num_bits
+                
+                val = fields.Int(val)
+            else:
+                val = getattr(self, name)
+            
             raw_val = val.raw_val(unpack_str)
-            
             raw_vals_list.append(raw_val)
+        
+        #print raw_vals_list
+        
         return ''.join(raw_vals_list)
-            
-            
-    
+
 class Ethernet(Wrapper):
     
     TYPE_IP = fields.HexIntClass(0x0800, 4)
@@ -120,7 +148,6 @@ class Ethernet(Wrapper):
         ('smac', '6s', fields.MACAddres),
         ('dmac', '6s', fields.MACAddres),
         ('type', '!H', fields.HexInt(4)),
-#        ('data', 'B', fields.HexInt(2)),
     ]
     
     _LEVEL_ = 0
@@ -154,8 +181,8 @@ class IPv4(Wrapper):
     
     _LEVEL_ = 1
     
-    def __init__(self, parent):
-        super(IPv4, self).__init__(parent=parent)
+    def __init__(self, parent, data_dict=None):
+        super(IPv4, self).__init__(parent=parent, data_dict=data_dict)
         self.payload = parent.payload[self.header_length * 4:]
     
 

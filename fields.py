@@ -20,6 +20,9 @@ class Int(Field):
     def __mul__(self, other):
         return self.val * other
     
+    def __lshift__(self, other):
+        return self.val << other
+    
     def raw_val(self, struct_fmt):
         return struct.pack(struct_fmt, self.val)
 
@@ -76,7 +79,13 @@ class MACAddres(Field):
 
 class IPAddress(Field):
     
-    def __init__(self, bin_val):
+    def __init__(self, bin_val=None, str_val=None):
+        if str_val:
+            bin_val = 0
+            for v in str_val.split('.'):
+                bin_val <<= 8
+                bin_val |= int(v)
+                
         self.bin_val = bin_val
     
     def __str__(self):
@@ -84,4 +93,4 @@ class IPAddress(Field):
         return '.'.join(addr_segments)
     
     def raw_val(self, struct_fmt=None):
-        return self.bin_val
+        return struct.pack('!L', self.bin_val)
