@@ -27,8 +27,16 @@ __doc__ = """
 >>> mac_addr_2.raw_val()
 '\\x00\\x19\\xe3\\x02\\xd9\\x1b'
 
+#---------------------------------------------------------#
+#-- HexIntClass.raw_val()                               --#
+#---------------------------------------------------------#
+>>> from fields import HexIntClass
+>>> hex_int_1 = HexIntClass(0x0806, 4)
+>>> str(hex_int_1)
+'0x0806'
 
-
+>>> hex_int_1.raw_val('!H')
+'\\x08\\x06'
 
 """
 

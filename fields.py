@@ -2,7 +2,7 @@ import struct
 from utils import bin2hex
 
 class Field(object):
-    def raw_val(self):
+    def raw_val(self, struct_fmt=None):
         raise NotImplementedError('raw_val() not implemented in %s.' % self.__class__.__name__)
 
 def HexInt(width):
@@ -21,6 +21,9 @@ class HexIntClass(Field):
     
     def __eq__(self, other):
         return self.val == other.val
+    
+    def raw_val(self, struct_fmt):
+        return struct.pack(struct_fmt, self.val)
 
 
 class MACAddres(Field):
@@ -48,7 +51,7 @@ class MACAddres(Field):
             raise Exception('Missing arguments')
             
     
-    def raw_val(self):
+    def raw_val(self, struct_fmt=None):
         return struct.pack('!H', self.num_val // 2 ** 32) + struct.pack('!L', self.num_val % 2 ** 32)
         
     
@@ -69,5 +72,5 @@ class IPAddress(Field):
         addr_segments = [str((self.bin_val >> shift) % 256) for shift in (24, 16, 8, 0)]
         return '.'.join(addr_segments)
     
-    def raw_val(self):
+    def raw_val(self, struct_fmt=None):
         return self.bin_val
