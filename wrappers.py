@@ -60,7 +60,7 @@ class Wrapper(object):
                     unpack_str = field[1]
                     _type = field[2]
                     size = struct.calcsize(unpack_str)
-                
+                    
                     if not name.startswith('_'):
                         raw_val = struct.unpack(unpack_str, raw_data[data_index:data_index + size])[0]
                         splitted_names = name.split('__and__')

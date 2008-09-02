@@ -132,6 +132,7 @@ True
 #---------------------------------------------------------#
 #-- IPv4.raw_val()                                      --#
 #---------------------------------------------------------#
+
 >>> from fields import IPAddress
 >>> from wrappers import IPv4
 >>> ipv4_1 = IPv4(eth_1)
@@ -210,6 +211,63 @@ True
         saddr=192.168.1.1
         daddr=192.168.1.2>
 
+
+#---------------------------------------------------------#
+#-- ICMP.raw_val()                                      --#
+#---------------------------------------------------------#
+>>> from wrappers import ICMP
+>>> icmp_1 = ICMP(parent=ipv4_1)
+>>> print icmp_1.__str__(parents=True)
+<Ethernet 
+    smac=01:80:c2:00:00:00
+    dmac=00:1a:92:12:11:1c
+    type=0x001e>
+    <IPv4 
+        version=4
+        header_length=5
+        type_of_service=0x00
+        total_length=84
+        identification=0x4b57
+        flags=0x5
+        fragment_offset=7952
+        time_to_live=64
+        protocol=0x01
+        header_checksum=0xabfe
+        saddr=192.168.1.1
+        daddr=192.168.1.2>
+        <ICMP 
+            type=0
+            code=0
+            checksum=0x97bd
+            id=0xe02b
+            sequence=59>
+>>> icmp_1.raw_val()
+'\\x01\\x80\\xc2\\x00\\x00\\x00\\x00\\x1a\\x92\\x12\\x11\\x1c\\x00\\x1eE\\x00\\x00TKW\\xbf\\x10@\\x01\\xab\\xfe\\xc0\\xa8\\x01\\x01\\xc0\\xa8\\x01\\x02\\x00\\x00\\x97\\xbd\\xe0+\\x00;'
+
+>>> print ICMP(parent=IPv4(Ethernet(icmp_1.raw_val()))).__str__(parents=True)
+<Ethernet 
+    smac=01:80:c2:00:00:00
+    dmac=00:1a:92:12:11:1c
+    type=0x001e>
+    <IPv4 
+        version=4
+        header_length=5
+        type_of_service=0x00
+        total_length=84
+        identification=0x4b57
+        flags=0x5
+        fragment_offset=7952
+        time_to_live=64
+        protocol=0x01
+        header_checksum=0xabfe
+        saddr=192.168.1.1
+        daddr=192.168.1.2>
+        <ICMP 
+            type=0
+            code=0
+            checksum=0x97bd
+            id=0xe02b
+            sequence=59>
 """
 
 def _test():
