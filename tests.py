@@ -11,6 +11,7 @@ __doc__ = """
 #---------------------------------------------------------#
 #-- MACAddres.raw_val()                                 --#
 #---------------------------------------------------------#
+
 >>> from fields import MACAddres
 >>> mac_addr_1 = MACAddres(bin_val='\\x00\\x19\\xe3\\x02\\xd9\\x1b')
 >>> mac_addr_1
@@ -30,6 +31,7 @@ __doc__ = """
 #---------------------------------------------------------#
 #-- HexIntClass.raw_val()                               --#
 #---------------------------------------------------------#
+
 >>> from fields import HexIntClass
 >>> hex_int_1 = HexIntClass(0x0806, 4)
 >>> str(hex_int_1)
@@ -41,6 +43,7 @@ __doc__ = """
 #---------------------------------------------------------#
 #-- Int.raw_val()                                       --#
 #---------------------------------------------------------#
+
 >>> from fields import Int
 >>> int_1 = Int(0x0806)
 >>> str(int_1)
@@ -71,6 +74,7 @@ True
 #---------------------------------------------------------#
 #-- IPAddress.raw_val()                                 --#
 #---------------------------------------------------------#
+
 >>> from fields import IPAddress
 >>> ip_addr_1 = IPAddress(3232235778)
 >>> print ip_addr_1
@@ -216,6 +220,7 @@ True
 #---------------------------------------------------------#
 #-- ICMP.raw_val()                                      --#
 #---------------------------------------------------------#
+
 >>> from wrappers import ICMP
 >>> icmp_1 = ICMP(parent=ipv4_1)
 >>> print icmp_1.__str__(parents=True)
@@ -329,8 +334,8 @@ True
 >>> icmp_2.payload = 'h\\x90\\xbdHi\\xff\\r\\x00\\x08\\t\\n\\x0b\\x0c\\r\\x0e\\x0f\\x10\\x11\\x12' \
 '\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f !"#$%&\\'()*+,-./01234567'
 
->>> str(icmp_2.compute_checksum())
-'0x97bd'
+>>> print icmp_2.compute_checksum()
+0x97bd
 
 >>> print icmp_2
         <ICMP 
@@ -339,6 +344,33 @@ True
             checksum=0x97bd
             id=0xe02b
             sequence=59>
+
+#---------------------------------------------------------#
+#-- ICMP.compute_checksum()                             --#
+#---------------------------------------------------------#
+
+>>> ipv4_3 = IPv4(parent=eth_1, data_dict=dict( \
+    version=4, \
+    header_length=5, \
+    type_of_service=0x00, \
+    total_length=52, \
+    identification=0xe9bb, \
+    flags=0x2, \
+    fragment_offset=0, \
+    time_to_live=51, \
+    protocol=0x06, \
+    saddr=IPAddress(str_val='62.50.73.12'), \
+    daddr=IPAddress(str_val='192.168.1.2') \
+))
+
+>>> ipv4_3.raw_val(parents=False)
+'E\\x00\\x004\\xe9\\xbb@\\x003\\x06\\x00\\x00>2I\\x0c\\xc0\\xa8\\x01\\x02'
+>>> print ipv4_3.compute_checksum()
+0x1520
+>>> ipv4_3.raw_val(parents=False) # after compute_checksum()
+'E\\x00\\x004\\xe9\\xbb@\\x003\\x06\\x15 >2I\\x0c\\xc0\\xa8\\x01\\x02'
+
+#>>> print ipv4_3
 
 """
 

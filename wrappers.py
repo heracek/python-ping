@@ -112,10 +112,10 @@ class Wrapper(object):
         
         return out
     
-    def raw_val(self, parrents=True):
+    def raw_val(self, parents=True):
         raw_vals_list = []
         
-        if self._parent and parrents:
+        if self._parent and parents:
             raw_vals_list = [self._parent.raw_val()]
         
         for field in self._fields_:
@@ -194,6 +194,15 @@ class IPv4(Wrapper):
     def __init__(self, parent, data_dict=None):
         super(IPv4, self).__init__(parent=parent, data_dict=data_dict)
         self.payload = parent.payload[self.header_length * 4:]
+    
+    def compute_checksum(self):
+        self.header_checksum.val = 0
+        
+        packet = self.raw_val(parents=False)
+        
+        self.header_checksum.val = utils.cksum(packet)
+        
+        return self.header_checksum
     
 
 class UDP(Wrapper):
@@ -293,9 +302,7 @@ class ICMP(Wrapper):
     
     def compute_checksum(self):
         self.checksum = fields.HexIntClass(0, 4)
-        packet = self.raw_val(parrents=False) + self.payload
+        packet = self.raw_val(parents=False) + self.payload
         self.checksum.val = utils.cksum(packet)
         
         return self.checksum
-
-#print Ethernet('\x01\x80\xc2\x00\x00\x00\x00\x1a\x92\x62\x31\x4c\x00\x2e\x42\x42\x03\x00\x00\x00\x00\x00\x80\x00\x00\x1a\x92\x62\x31\x4c\x01\x80\xc2')

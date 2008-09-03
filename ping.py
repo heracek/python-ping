@@ -21,7 +21,10 @@ def print_debug(what, force=False):
         # eth = what._parent._parent
         # print eth
         # print repr(eth.raw_val() + eth.payload)
+        # if not what.header_checksum == what.compute_checksum():
         print what.__str__(parents=True)
+        print repr(what.raw_val(parents=False))
+        print what.compute_checksum()
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
     print_debug(dhcp_packet, force=False)
@@ -32,12 +35,11 @@ def udp_packet_callback(eth_packet, ip_packet, udp_packet):
         dhcp_packet_callback(eth_packet, ip_packet, udp_packet, DHCP(parent=udp_packet))        
 
 def icmp_packet_callback(eth_packet, ip_packet, icmp_packet):
-    print_debug(icmp_packet, force=True)
+    print_debug(icmp_packet, force=False)
 
 def ip_packet_callback(eth_packet, ip_packet):
     print_debug('packet #%d:' % PACKET_COUNT)
-    print_debug(eth_packet)
-    print_debug(ip_packet)
+    print_debug(ip_packet, force=True)
     
     if ip_packet.protocol == IPv4.PROTOCOL_UDP:
         udp_packet_callback(eth_packet, ip_packet, UDP(parent=ip_packet))
