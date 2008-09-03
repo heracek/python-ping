@@ -193,7 +193,8 @@ class IPv4(Wrapper):
     
     def __init__(self, parent, data_dict=None):
         super(IPv4, self).__init__(parent=parent, data_dict=data_dict)
-        self.payload = parent.payload[self.header_length * 4:]
+        if hasattr(parent, 'payload'):
+            self.payload = parent.payload[self.header_length * 4:]
     
     def compute_checksum(self):
         self.header_checksum.val = 0

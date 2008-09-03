@@ -370,8 +370,6 @@ True
 >>> ipv4_3.raw_val(parents=False) # after compute_checksum()
 'E\\x00\\x004\\xe9\\xbb@\\x003\\x06\\x15 >2I\\x0c\\xc0\\xa8\\x01\\x02'
 
-#>>> print ipv4_3
-
 """
 
 def _test():
