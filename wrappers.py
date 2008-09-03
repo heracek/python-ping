@@ -2,6 +2,7 @@ import os
 import struct
 
 import fields
+import utils
 
 LEVEL_SEPARATOR = ' ' * 4
 
@@ -40,6 +41,10 @@ class Wrapper(object):
                 splitted_names = name.split('__and__')
                 
                 for (i, splitted_name) in enumerate(splitted_names):
+                    if 'checksum' in splitted_name and splitted_name not in data_dict:
+                        setattr(self, splitted_name, _type(0))
+                        continue
+                    
                     val = data_dict[splitted_name]
                     
                     if isinstance(val, int):
@@ -79,6 +84,8 @@ class Wrapper(object):
                             self.__setattr__(name, val)
             
                     data_index += size
+                
+                self.payload = raw_data[data_index:]
     
     def __str__(self, level=None, parents=False):
         if level is None:
@@ -105,10 +112,10 @@ class Wrapper(object):
         
         return out
     
-    def raw_val(self):
+    def raw_val(self, parrents=True):
         raw_vals_list = []
         
-        if self._parent:
+        if self._parent and parrents:
             raw_vals_list = [self._parent.raw_val()]
         
         for field in self._fields_:
@@ -131,6 +138,9 @@ class Wrapper(object):
                 val = fields.Int(val)
             else:
                 val = getattr(self, name)
+            
+            if isinstance(val, int):
+                val = fields.Int(val)
             
             raw_val = val.raw_val(unpack_str)
             raw_vals_list.append(raw_val)
@@ -280,5 +290,12 @@ class ICMP(Wrapper):
     ]
     
     _LEVEL_ = 2
+    
+    def compute_checksum(self):
+        self.checksum = fields.HexIntClass(0, 4)
+        packet = self.raw_val(parrents=False) + self.payload
+        self.checksum.val = utils.cksum(packet)
+        
+        return self.checksum
 
 #print Ethernet('\x01\x80\xc2\x00\x00\x00\x00\x1a\x92\x62\x31\x4c\x00\x2e\x42\x42\x03\x00\x00\x00\x00\x00\x80\x00\x00\x1a\x92\x62\x31\x4c\x01\x80\xc2')

@@ -87,12 +87,13 @@ True
 '\\xc0\\xa8\\x01\\x02'
 
 ###############################################################################
-### Field.raw_val()                                                         ###
+### Wrapper.raw_val()                                                       ###
 ###############################################################################
 
 #---------------------------------------------------------#
 #-- Ethernet.raw_val()                                  --#
 #---------------------------------------------------------#
+
 >>> from fields import MACAddres
 >>> from wrappers import Ethernet
 >>> eth_1 = Ethernet('\\x01\\x80\\xc2\\x00\\x00\\x00\\x00\\x1a\\x92\\x12\\x11\\x1c\\x00\\x1e' + \
@@ -243,6 +244,8 @@ True
             sequence=59>
 >>> icmp_1.raw_val()
 '\\x01\\x80\\xc2\\x00\\x00\\x00\\x00\\x1a\\x92\\x12\\x11\\x1c\\x00\\x1eE\\x00\\x00TKW\\xbf\\x10@\\x01\\xab\\xfe\\xc0\\xa8\\x01\\x01\\xc0\\xa8\\x01\\x02\\x00\\x00\\x97\\xbd\\xe0+\\x00;'
+>>> icmp_1.payload
+'h\\x90\\xbdHi\\xff\\r\\x00\\x08\\t\\n\\x0b\\x0c\\r\\x0e\\x0f\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f !"#$%&\\'()*+,-./01234567'
 
 >>> print ICMP(parent=IPv4(Ethernet(icmp_1.raw_val()))).__str__(parents=True)
 <Ethernet 
@@ -268,6 +271,75 @@ True
             checksum=0x97bd
             id=0xe02b
             sequence=59>
+
+>>> icmp_2 = ICMP(parent=ipv4_1, data_dict=dict( \
+    type=0, \
+    code=0, \
+    checksum=0x97bd, \
+    id=0xe02b, \
+    sequence=59 \
+))
+>>> print icmp_2.__str__(parents=True)
+<Ethernet 
+    smac=01:80:c2:00:00:00
+    dmac=00:1a:92:12:11:1c
+    type=0x001e>
+    <IPv4 
+        version=4
+        header_length=5
+        type_of_service=0x00
+        total_length=84
+        identification=0x4b57
+        flags=0x5
+        fragment_offset=7952
+        time_to_live=64
+        protocol=0x01
+        header_checksum=0xabfe
+        saddr=192.168.1.1
+        daddr=192.168.1.2>
+        <ICMP 
+            type=0
+            code=0
+            checksum=0x97bd
+            id=0xe02b
+            sequence=59>
+
+###############################################################################
+### compute_checksum()                                                      ###
+###############################################################################
+
+#---------------------------------------------------------#
+#-- ICMP.compute_checksum()                             --#
+#---------------------------------------------------------#
+
+>>> icmp_2 = ICMP(parent=ipv4_1, data_dict=dict( \
+    type=0, \
+    code=0, \
+    id=0xe02b, \
+    sequence=59 \
+))
+>>> print icmp_2
+        <ICMP 
+            type=0
+            code=0
+            checksum=0x0000
+            id=0xe02b
+            sequence=59>
+
+>>> icmp_2.payload = 'h\\x90\\xbdHi\\xff\\r\\x00\\x08\\t\\n\\x0b\\x0c\\r\\x0e\\x0f\\x10\\x11\\x12' \
+'\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1a\\x1b\\x1c\\x1d\\x1e\\x1f !"#$%&\\'()*+,-./01234567'
+
+>>> str(icmp_2.compute_checksum())
+'0x97bd'
+
+>>> print icmp_2
+        <ICMP 
+            type=0
+            code=0
+            checksum=0x97bd
+            id=0xe02b
+            sequence=59>
+
 """
 
 def _test():

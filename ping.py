@@ -3,7 +3,6 @@ import fcntl
 import os
 import re
 import shared
-import struct
 import sys
 
 import bpf
@@ -19,8 +18,9 @@ def print_debug(what, force=False):
     if PRINT_DEBUG:
         print what
     elif force:
-        #eth = what._parent._parent
-        #print repr(eth.raw_val() + eth.payload)
+        # eth = what._parent._parent
+        # print eth
+        # print repr(eth.raw_val() + eth.payload)
         print what.__str__(parents=True)
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
@@ -68,7 +68,7 @@ def main():
             print '\tdev ... device'
             print '\thost ... ip address of host'
             sys.exit(1)
-
+    
     LOCAL_DEVICE = sys.argv[1]
     LOCAL_MAC_ADDRESS = shared.get_local_mac_addres_of_device(LOCAL_DEVICE)
     print 'LOCAL_MAC_ADDRESS: %s' % LOCAL_MAC_ADDRESS
