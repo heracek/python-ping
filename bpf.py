@@ -14,6 +14,41 @@ BIOCGBLEN = 1074020966
 BPF_ALIGNMENT = 4
 BPF_WORDALIGN = lambda x: (((x)+(BPF_ALIGNMENT-1))&~(BPF_ALIGNMENT-1))
 
+class BPFPacket(object):
+    def __init__(self, header, data):
+        self.header = header
+        self.data = data
+
+def packet_reader(fd):
+    blen = bpf_get_blen(fd)
+    while True:
+        buffer = os.read(fd, blen)
+        if len(buffer) > 0:
+            packet_index = 0
+            while packet_index < len(buffer):
+                header = get_header(buffer[packet_index:packet_index + 18])
+                
+                if header.bh_caplen != header.bh_datalen:
+                    print 'Packet fraction at BPF level. - skipped'
+                    packet_index += BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
+                    continue
+                
+                data = buffer[packet_index + header.bh_hdrlen:packet_index + header.bh_caplen + header.bh_hdrlen]
+
+                yield BPFPacket(header, data)
+                
+                packet_index += BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
+
+def get_bpf_fg(device, nonblocking=False):
+    fd = bpf_new()
+    bpf_set_immediate(fd, 1)
+    bpf_setif(fd, device)
+    
+    if nonblocking:
+        fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK) # nonblocking reading - slows down CPU
+    
+    return fd
+
 def bpf_new():
     for i in xrange(10):
         bpfdev = BPF_FORMAT % i

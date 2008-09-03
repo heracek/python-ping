@@ -57,27 +57,6 @@ def eth_packet_callback(eth_packet):
         arp_packet_callback(eth_packet)
 
     PACKET_COUNT += 1
-    
-def my_listen(fd, packet_callback):
-    # fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK) # nonblocking reading - slows down CPU
-    blen = bpf.bpf_get_blen(fd)
-    while True:
-        buffer = os.read(fd, blen)
-        if len(buffer) > 0:
-            packet_index = 0
-            while packet_index < len(buffer):
-                header = bpf.get_header(buffer[packet_index:packet_index + 18])
-                
-                if header.bh_caplen != header.bh_datalen:
-                    print 'Packet fraction at BPF level. - skipped'
-                    packet_index += bpf.BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
-                    continue
-                
-                data = buffer[packet_index + header.bh_hdrlen:packet_index + header.bh_caplen + header.bh_hdrlen]
-                
-                packet_callback(Ethernet(data))
-                
-                packet_index += bpf.BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
 
 def main():
     if len(sys.argv) != 3:
@@ -93,13 +72,11 @@ def main():
     LOCAL_DEVICE = sys.argv[1]
     LOCAL_MAC_ADDRESS = shared.get_local_mac_addres_of_device(LOCAL_DEVICE)
     print 'LOCAL_MAC_ADDRESS: %s' % LOCAL_MAC_ADDRESS
-
-    fd = -1
-    fd = bpf.bpf_new()
-    bpf.bpf_set_immediate(fd, 1)
-    bpf.bpf_setif(fd, LOCAL_DEVICE)
-
-    my_listen(fd, eth_packet_callback)
+    
+    fd = bpf.get_bpf_fg(device=LOCAL_DEVICE)
+    
+    for bpf_packet in bpf.packet_reader(fd):
+        eth_packet_callback(Ethernet(bpf_packet.data))
 
     bpf.bpf_dispose(fd)
     
