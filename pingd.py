@@ -14,20 +14,22 @@ LOCAL_MAC_ADDRESS = None
 PACKET_COUNT = 1
 PRINT_DEBUG = False
 
+raw_packet = None
+
 def print_debug(what, force=False):
     if PRINT_DEBUG:
         print what
     elif force:
         print what.__str__(parents=True)
         x = what.raw_val() + what.payload
-        print repr(x), len(x)
+        print repr(raw_packet), raw_packet == x, len(raw_packet)
         
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
-    print_debug(dhcp_packet, force=False)
+    print_debug(dhcp_packet, force=True)
     
 def udp_packet_callback(eth_packet, ip_packet, udp_packet):
-    print_debug(udp_packet, force=True)
+    print_debug(udp_packet, force=False)
     if (udp_packet.sport, udp_packet.dport) in UDP.COMM_DHCP:
         dhcp_packet_callback(eth_packet, ip_packet, udp_packet, DHCP(parent=udp_packet))        
 
@@ -60,7 +62,7 @@ def eth_packet_callback(eth_packet):
 def main():
     if len(sys.argv) != 3:
         if len(sys.argv) == 1:
-            sys.argv.extend(['en1', '192.168.1.1'])
+            sys.argv.extend(['en0', '192.168.1.1'])
             print 'using defaul args:', ' '.join(sys.argv)
         else:
             print 'usage: %s dev host' % sys.argv[0]
@@ -68,6 +70,7 @@ def main():
             print '\thost ... ip address of host'
             sys.exit(1)
     
+    global LOCAL_DEVICE, LOCAL_MAC_ADDRESS, raw_packet
     LOCAL_DEVICE = sys.argv[1]
     LOCAL_MAC_ADDRESS = shared.get_local_mac_addres_of_device(LOCAL_DEVICE)
     print 'LOCAL_MAC_ADDRESS: %s' % LOCAL_MAC_ADDRESS
@@ -75,6 +78,7 @@ def main():
     fd = bpf.get_bpf_fg(device=LOCAL_DEVICE)
     
     for bpf_packet in bpf.packet_reader(fd):
+        raw_packet = bpf_packet.data
         eth_packet_callback(Ethernet(bpf_packet.data))
 
     bpf.bpf_dispose(fd)

@@ -66,22 +66,26 @@ class Wrapper(object):
                     _type = field[2]
                     size = struct.calcsize(unpack_str)
                     
-                    if not name.startswith('_'):
-                        raw_val = struct.unpack(unpack_str, raw_data[data_index:data_index + size])[0]
-                        splitted_names = name.split('__and__')
-                        if len(splitted_names) > 1:
-                            start_bit = size * 8
-                            for field_name, (num_bits, splitted_type) in zip(splitted_names, _type):
-                                shift = start_bit - num_bits
-                                splitted_raw_val = (raw_val >> shift) % (1 << num_bits)
-                        
-                                val = splitted_type(splitted_raw_val)
-                                self.__setattr__(field_name, val)
-                     
-                                start_bit -= num_bits
-                        else:                
+                    #if not name.startswith('_'):
+                    raw_val = struct.unpack(unpack_str, raw_data[data_index:data_index + size])[0]
+                    splitted_names = name.split('__and__')
+                    if len(splitted_names) > 1:
+                        start_bit = size * 8
+                        for field_name, (num_bits, splitted_type) in zip(splitted_names, _type):
+                            shift = start_bit - num_bits
+                            splitted_raw_val = (raw_val >> shift) % (1 << num_bits)
+                    
+                            val = splitted_type(splitted_raw_val)
+                            self.__setattr__(field_name, val)
+                    
+                            start_bit -= num_bits
+                    else:
+                        if _type is None:
+                            val = raw_val
+                        else:
                             val = _type(raw_val)
-                            self.__setattr__(name, val)
+                        
+                        self.__setattr__(name, val)
             
                     data_index += size
                 
@@ -142,7 +146,10 @@ class Wrapper(object):
             if type(val) in (int, long):
                 val = fields.Int(val)
             
-            raw_val = val.raw_val(unpack_str)
+            if _type is None:
+                raw_val = val
+            else:
+                raw_val = val.raw_val(unpack_str)
             raw_vals_list.append(raw_val)
         
         #print raw_vals_list
@@ -258,6 +265,7 @@ class DHCPOption(object):
     
 class DHCPOptions(object):
     def __init__(self, dhcp_options):
+        self._raw_val = dhcp_options
         self.options = []
         
         options_index = 0
@@ -280,6 +288,9 @@ class DHCPOptions(object):
             self.__class__.__name__,
             field_separator,
             field_separator.join([str(option) for option in self.options]))
+    
+    def raw_val(self, struct_fmt=None):
+        return self._raw_val
 
 class DHCP(Wrapper):
     
