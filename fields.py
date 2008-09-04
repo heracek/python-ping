@@ -13,9 +13,9 @@ class Int(Field):
         return str(self.val)
     
     def __eq__(self, other):
-        if isinstance(other, int):
-            return self.val == other
-        return self.val == other.val
+        if isinstance(other, Int):
+            return self.val == other.val
+        return self.val == other
     
     def __mul__(self, other):
         return self.val * other

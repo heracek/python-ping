@@ -5,6 +5,7 @@ import re
 import shared
 import sys
 import time
+import random
 
 import bpf
 from utils import bin2hex
@@ -19,6 +20,7 @@ REMOTE_MAC_ADDRESS = MACAddres(colon_hex_str='00:1a:92:62:31:4c')
 REMOTE_IP_ADDRESS = None
 
 def ping(fd, timeout=1.0):
+    
     eth = Ethernet(data_dict=dict(
         dmac=REMOTE_MAC_ADDRESS,
         smac=LOCAL_MAC_ADDRESS,
@@ -30,12 +32,12 @@ def ping(fd, timeout=1.0):
         header_length=5,
         type_of_service=0x00,
         total_length=84,
-        identification=0x0c25,
+        identification=random.getrandbits(16),
         flags=0x0,
         fragment_offset=0,
         time_to_live=64,
         protocol=0x01,
-        header_checksum=0xeb30,
+        header_checksum=0x0000,
         saddr=LOCAL_IP_ADDRESS,
         daddr=REMOTE_IP_ADDRESS
     ))
@@ -43,14 +45,14 @@ def ping(fd, timeout=1.0):
     icmp = ICMP(parent=ipv4, data_dict=dict(
         type=8,
         code=0,
-        checksum=0x7a33,
-        id=0xabcd,
+        checksum=0x0000,
+        id=random.getrandbits(16),
         sequence=0
     ))
     
     icmp.payload = 'a' * 56
     
-    print "PING %s : %d data bytes" % (REMOTE_IP_ADDRESS, len(icmp.payload))
+    print "PING %s: %d data bytes" % (REMOTE_IP_ADDRESS, len(icmp.payload))
     
     while True:
         

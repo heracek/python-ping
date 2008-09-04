@@ -47,7 +47,7 @@ class Wrapper(object):
                     
                     val = data_dict[splitted_name]
                     
-                    if isinstance(val, int):
+                    if type(val) in (int, long):
                         if len(splitted_names) > 1:
                             val = _type[i][1](val)
                         else:
@@ -139,7 +139,7 @@ class Wrapper(object):
             else:
                 val = getattr(self, name)
             
-            if isinstance(val, int):
+            if type(val) in (int, long):
                 val = fields.Int(val)
             
             raw_val = val.raw_val(unpack_str)
