@@ -155,8 +155,8 @@ class Ethernet(Wrapper):
     TYPE_ARP = fields.HexIntClass(0x0806, 4)
     
     _fields_ = [
-        ('smac', '6s', fields.MACAddres),
         ('dmac', '6s', fields.MACAddres),
+        ('smac', '6s', fields.MACAddres),
         ('type', '!H', fields.HexInt(4)),
     ]
     

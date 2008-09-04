@@ -18,10 +18,7 @@ def print_debug(what, force=False):
     if PRINT_DEBUG:
         print what
     elif force:
-        # eth = what._parent._parent
-        # print eth
         print what.__str__(parents=True)
-        print repr(what.payload)
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
     print_debug(dhcp_packet, force=False)
