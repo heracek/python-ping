@@ -1,0 +1,13 @@
+Pouzite zdroje:
+ * http://docs.python.org/
+ * http://en.wikipedia.org/wiki/Berkeley_Packet_Filter
+ * Manualove stranky: bpf -- Berkeley Packet Filter
+ * HOWTO: Using the BPF device under FreeBSD: http://canmore.annwfn.net/freebsd/bpf.html
+ 
+ * RFC792
+ * http://en.wikipedia.org/wiki/Ethernet
+ * http://en.wikipedia.org/wiki/Address_Resolution_Protocol
+ * http://en.wikipedia.org/wiki/IPv4
+ * http://en.wikipedia.org/wiki/Dynamic_Host_Configuration_Protocol
+ * http://en.wikipedia.org/wiki/User_Datagram_Protocol
+ * http://en.wikipedia.org/wiki/Internet_Control_Message_Protocol
