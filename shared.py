@@ -13,6 +13,5 @@ def get_local_mac_addres_of_device(dev):
     
     for line in pipe:
         if line.startswith(IFCONFIG_MAC_ADDRESS_LINE):
-            print line
             return MACAddres(colon_hex_str = line[len(IFCONFIG_MAC_ADDRESS_LINE):])
 

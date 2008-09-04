@@ -95,7 +95,6 @@ def bpf_new():
             raise Exception('''Can't open BPF.''')
         try:
             fd = os.open(bpfdev, os.O_RDWR, 0)
-            print 'Opened BPF:', bpfdev
             return fd
         except:
             pass

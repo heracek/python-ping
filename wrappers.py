@@ -307,3 +307,6 @@ class ICMP(Wrapper):
         self.checksum.val = utils.cksum(packet)
         
         return self.checksum
+    
+    def len(self):
+        return len(self.raw_val(parents=False)) + len(self.payload)

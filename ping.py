@@ -16,9 +16,9 @@ LOCAL_MAC_ADDRESS = MACAddres(colon_hex_str='00:1a:92:62:31:4c')
 LOCAL_IP_ADDRESS = IPAddress(str_val='192.168.1.2')
 
 REMOTE_MAC_ADDRESS = None
-REMOTE_IP_ADDRESS = IPAddress(str_val='192.168.1.1')
+REMOTE_IP_ADDRESS = None
 
-def ping(fd):
+def ping(fd, timeout=1.0):
     eth = Ethernet(data_dict=dict(
         smac=LOCAL_MAC_ADDRESS,
         dmac=REMOTE_MAC_ADDRESS,
@@ -44,13 +44,19 @@ def ping(fd):
         type=8,
         code=0,
         checksum=0x7a33,
-        id=0x1234,
+        id=0xabcd,
         sequence=0
     ))
     
     icmp.payload = 'a' * 56
     
+    print "PING %s : %d data bytes" % (REMOTE_IP_ADDRESS, len(icmp.payload))
+    
     while True:
+        
+        icmp.compute_checksum()
+        ipv4.compute_checksum()
+        
         out_packet = icmp.raw_val() + icmp.payload
         os.write(fd, out_packet)
         
@@ -58,7 +64,7 @@ def ping(fd):
         
         try:
             while True:
-                packet = bpf.read_packet(fd, timeout=1.0)
+                packet = bpf.read_packet(fd, timeout=timeout)
                 
                 end_time = time.time()
                 
@@ -78,27 +84,29 @@ def ping(fd):
                         
                         in_icmp = ICMP(parent=in_ip)
                         
-                        if True: # ...
+                        if in_icmp.type == 0 \
+                            and in_icmp.code == 0 \
+                            and in_icmp.id == icmp.id \
+                            and in_icmp.sequence == in_icmp.sequence:
+                            
                             is_valid_icmp = True
                             
                             total_time = end_time - start_time
+                            print "%d bytes from %s: icmp_seq=%s ttl=%s time=%.03f ms" % \
+                                (in_icmp.len(), in_ip.saddr, in_icmp.sequence,
+                                 in_ip.time_to_live, total_time * 1000)
                             
-                            print in_icmp, total_time * 1000
-                            
-                            if icmp.sequence.val != 0 and total_time < 1:
-                                time.sleep(1 - total_time)
+                            if total_time < timeout:
+                                time.sleep(timeout - total_time)
                 
                 if is_valid_icmp:
                     break
-                
         except bpf.BPFTimeout:
-            print 'no reply (ping_seq = %d)' % icmp.sequence.val    
+            print 'ping: sendto: Host is down (icmp_seq=%d)' % icmp.sequence.val
         
         icmp.sequence.val += 1
-        icmp.compute_checksum()
-        
         ipv4.identification.val += 1
-        ipv4.compute_checksum()
+        
 
 def main():
     if len(sys.argv) != 3:
@@ -111,11 +119,11 @@ def main():
             print '\thost ... ip address of host'
             sys.exit(1)
     
-    global LOCAL_DEVICE, REMOTE_MAC_ADDRESS
+    global LOCAL_DEVICE, REMOTE_MAC_ADDRESS, REMOTE_IP_ADDRESS
     
     LOCAL_DEVICE = sys.argv[1]
+    REMOTE_IP_ADDRESS = IPAddress(str_val=sys.argv[2])
     REMOTE_MAC_ADDRESS = shared.get_local_mac_addres_of_device(LOCAL_DEVICE)
-    print LOCAL_MAC_ADDRESS, REMOTE_MAC_ADDRESS
     
     fd = bpf.get_bpf_fg(device=LOCAL_DEVICE)
     
