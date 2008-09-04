@@ -107,8 +107,8 @@ True
 
 >>> print eth_1
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
 
 >>> eth_1.raw_val()
@@ -116,18 +116,18 @@ True
 
 >>> print Ethernet(eth_1.raw_val())
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
 
 
->>> smac = MACAddres(colon_hex_str='01:80:c2:00:00:00')
->>> dmac = MACAddres(colon_hex_str='00:1a:92:12:11:1c') 
->>> eth_2 = Ethernet(data_dict=dict(smac=smac, dmac=dmac, type=0x001e))
+>>> dmac = MACAddres(colon_hex_str='01:80:c2:00:00:00')
+>>> smac = MACAddres(colon_hex_str='00:1a:92:12:11:1c') 
+>>> eth_2 = Ethernet(data_dict=dict(dmac=dmac, smac=smac, type=0x001e))
 >>> print eth_2
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
 
 >>> eth_2.raw_val()
@@ -143,8 +143,8 @@ True
 >>> ipv4_1 = IPv4(eth_1)
 >>> print ipv4_1.__str__(parents=True)
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
     <IPv4 
         version=4
@@ -165,8 +165,8 @@ True
 
 >>> print IPv4(Ethernet(ipv4_1.raw_val())).__str__(parents=True)
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
     <IPv4 
         version=4
@@ -199,8 +199,8 @@ True
 
 >>> print ipv4_2.__str__(parents=True)
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
     <IPv4 
         version=4
@@ -225,8 +225,8 @@ True
 >>> icmp_1 = ICMP(parent=ipv4_1)
 >>> print icmp_1.__str__(parents=True)
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
     <IPv4 
         version=4
@@ -254,8 +254,8 @@ True
 
 >>> print ICMP(parent=IPv4(Ethernet(icmp_1.raw_val()))).__str__(parents=True)
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
     <IPv4 
         version=4
@@ -286,8 +286,8 @@ True
 ))
 >>> print icmp_2.__str__(parents=True)
 <Ethernet 
-    smac=01:80:c2:00:00:00
-    dmac=00:1a:92:12:11:1c
+    dmac=01:80:c2:00:00:00
+    smac=00:1a:92:12:11:1c
     type=0x001e>
     <IPv4 
         version=4
@@ -369,6 +369,55 @@ True
 0x1520
 >>> ipv4_3.raw_val(parents=False) # after compute_checksum()
 'E\\x00\\x004\\xe9\\xbb@\\x003\\x06\\x15 >2I\\x0c\\xc0\\xa8\\x01\\x02'
+
+
+#---------------------------------------------------------#
+#-- UDP.compute_checksum()                              --#
+#---------------------------------------------------------#
+
+>>> from wrappers import UDP
+>>> udp_1 = UDP(IPv4(Ethernet('\\x01\\x00^\\x7f\\xff\\xfa\\x00\\x1a\\x92b1L\\x08\\x00E\\x00\\x01\\x8b\\x00\\x00@\\x00\\x04\\x11\\xc3\\xbe\\xc0\\xa8\\x01\\x01\\xef\\xff\\xff\\xfa\\x07l\\x07l\\x01w\\xf8}NOTIFY * HTTP/1.1 \\r\\nHOST: 239.255.255.250:1900\\r\\nCACHE-CONTROL: max-age=30\\r\\nLocation: http://192.168.1.1:5431/dyndev/uuid:001a9262-314c-001a-9262-314c00585400\\r\\nNT: urn:schemas-upnp-org:service:WANPPPConnection:1\\r\\nNTS: ssdp:alive\\r\\nSERVER:LINUX/2.4 UPnP/1.0 BRCM400/1.0\\r\\nUSN: uuid:001a9262-314c-001a-9262-314c02585400::urn:schemas-upnp-org:service:WANPPPConnection:1\\r\\n\\r\\n')))
+>>> print udp_1.__str__(parents=True)
+<Ethernet 
+    dmac=01:00:5e:7f:ff:fa
+    smac=00:1a:92:62:31:4c
+    type=0x0800>
+    <IPv4 
+        version=4
+        header_length=5
+        type_of_service=0x00
+        total_length=395
+        identification=0x0000
+        flags=0x2
+        fragment_offset=0
+        time_to_live=4
+        protocol=0x11
+        header_checksum=0xc3be
+        saddr=192.168.1.1
+        daddr=239.255.255.250>
+        <UDP 
+            sport=1900
+            dport=1900
+            length=375
+            checksum=0xf87d>
+
+>>> udp_1.checksum.val = 0
+>>> print udp_1
+        <UDP 
+            sport=1900
+            dport=1900
+            length=375
+            checksum=0x0000>
+
+>>> print hex(udp_1.compute_checksum())
+0xf87d
+>>> print udp_1 # after compute_checksum()
+        <UDP 
+            sport=1900
+            dport=1900
+            length=375
+            checksum=0xf87d>
+
 
 """
 

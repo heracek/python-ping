@@ -19,17 +19,20 @@ def print_debug(what, force=False):
         print what
     elif force:
         print what.__str__(parents=True)
+        x = what.raw_val() + what.payload
+        print repr(x), len(x)
+        
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
     print_debug(dhcp_packet, force=False)
     
 def udp_packet_callback(eth_packet, ip_packet, udp_packet):
-    print_debug(udp_packet)
+    print_debug(udp_packet, force=True)
     if (udp_packet.sport, udp_packet.dport) in UDP.COMM_DHCP:
         dhcp_packet_callback(eth_packet, ip_packet, udp_packet, DHCP(parent=udp_packet))        
 
 def icmp_packet_callback(eth_packet, ip_packet, icmp_packet):
-    print_debug(icmp_packet, force=True)
+    print_debug(icmp_packet, force=False)
 
 def ip_packet_callback(eth_packet, ip_packet):
     print_debug('packet #%d:' % PACKET_COUNT)

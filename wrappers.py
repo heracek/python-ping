@@ -226,6 +226,20 @@ class UDP(Wrapper):
         super(UDP, self).__init__(parent=parent)
         self.payload = parent.payload[8:]
         self.len = len(self.payload)
+    
+    def compute_checksum(self):
+        self.checksum.val = 0
+        
+        ipv4_pseudo_header = '%s%s\x00%s%s' % (
+            self._parent.saddr.raw_val(),
+            self._parent.daddr.raw_val(),
+            self._parent.protocol.raw_val('B'),
+            fields.Int(self.length.val).raw_val('!H'),
+        )
+        
+        self.checksum.val = utils.cksum(ipv4_pseudo_header + self.raw_val(parents=False) + self.payload)
+        
+        return self.checksum.val
 
 class DHCPOption(object):
     def __init__(self, dhcp_options):
