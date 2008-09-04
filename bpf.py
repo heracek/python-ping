@@ -1,6 +1,7 @@
 import os
 import fcntl
 import struct
+import select
 
 BPF_FORMAT = "/dev/bpf%d"
 
@@ -19,9 +20,44 @@ class BPFPacket(object):
         self.header = header
         self.data = data
 
-def packet_reader(fd):
+class BPFTimeout(Exception):
+    pass
+
+def read_packet(fd, timeout=None):
+    blen = bpf_get_blen(fd)
+    
+    if timeout is not None:
+        iwtd, owtd, ewtd = select.select([fd], [], [], timeout)
+        if not iwtd:
+            raise BPFTimeout()
+            
+    buffer = os.read(fd, blen)
+    if len(buffer) > 0:
+        packet_index = 0
+        while packet_index < len(buffer):
+            header = get_header(buffer[packet_index:packet_index + 18])
+            
+            if header.bh_caplen != header.bh_datalen:
+                print 'Packet fraction at BPF level. - skipped'
+                packet_index += BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
+                continue
+            
+            data = buffer[packet_index + header.bh_hdrlen: \
+                          packet_index + header.bh_caplen + header.bh_hdrlen]
+
+            return BPFPacket(header, data)
+            
+            packet_index += BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
+    
+def packet_reader(fd, timeout=None):
     blen = bpf_get_blen(fd)
     while True:
+        if timeout is not None:
+            iwtd, owtd, ewtd = select.select([fd], [], [], timeout)
+            if not iwtd:
+                yield BPFTimeout()
+                continue
+                
         buffer = os.read(fd, blen)
         if len(buffer) > 0:
             packet_index = 0
@@ -33,7 +69,8 @@ def packet_reader(fd):
                     packet_index += BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
                     continue
                 
-                data = buffer[packet_index + header.bh_hdrlen:packet_index + header.bh_caplen + header.bh_hdrlen]
+                data = buffer[packet_index + header.bh_hdrlen: \
+                              packet_index + header.bh_caplen + header.bh_hdrlen]
 
                 yield BPFPacket(header, data)
                 
@@ -87,7 +124,8 @@ class BPFHeader(object):
         self.bh_hdrlen = unpacked[4]
     
     def __str__(self):
-        return '''<BPFHeader tv_sec=%u tv_usec=%u bh_caplen=%u bh_datalen=%u bh_hdrlen=%u>''' % self._unpacked
+        return '''<BPFHeader tv_sec=%u tv_usec=%u bh_caplen=%u bh_datalen=%u bh_hdrlen=%u>''' % \
+                self._unpacked
 
 def get_header(buffer):
     return BPFHeader(struct.unpack('IIIIH', buffer))

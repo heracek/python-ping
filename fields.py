@@ -69,6 +69,12 @@ class MACAddres(Field):
         return struct.pack('!H', self.num_val // 2 ** 32) + struct.pack('!L', self.num_val % 2 ** 32)
         
     
+    def __eq__(self, other):
+        if isinstance(other, MACAddres):
+            return self.num_val == other.num_val
+        if isinstance(other, str):
+            return str(self) == other
+    
     def __repr__(self):
         return '<MAC addres %s>' % self.__str__()
     
@@ -87,6 +93,12 @@ class IPAddress(Field):
                 bin_val |= int(v)
                 
         self.bin_val = bin_val
+    
+    def __eq__(self, other):
+        if isinstance(other, IPAddress):
+            return self.bin_val == other.bin_val
+        if isinstance(other, str):
+            return str(self) == other
     
     def __str__(self):
         addr_segments = [str((self.bin_val >> shift) % 256) for shift in (24, 16, 8, 0)]
