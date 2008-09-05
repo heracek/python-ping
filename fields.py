@@ -109,6 +109,9 @@ class IPAddress(Field):
     
     def raw_val(self, struct_fmt=None):
         return struct.pack('!L', self.bin_val)
+    
+    def addresses_in_same_subnet(self, addr1, addr2):
+        return (addr1.bin_val & self.bin_val) == (addr2.bin_val & self.bin_val)
 
 class IPAddressFromBinStr(IPAddress):
     

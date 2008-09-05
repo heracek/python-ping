@@ -10,13 +10,13 @@ import random
 import bpf
 from utils import bin2hex
 from wrappers import Ethernet, IPv4, UDP, DHCP, ICMP
-from fields import MACAddres, IPAddress
+from fields import IPAddress
 
 LOCAL_DEVICE = None
 LOCAL_MAC_ADDRESS = None
 LOCAL_IP_ADDRESS = None
 
-REMOTE_MAC_ADDRESS = MACAddres(colon_hex_str='00:1a:92:62:31:4c')
+REMOTE_MAC_ADDRESS = None
 REMOTE_IP_ADDRESS = None
 
 def ping(fd, timeout=1.0):
@@ -121,7 +121,8 @@ def main():
             print '\thost ... ip address of host'
             sys.exit(1)
     
-    global LOCAL_DEVICE, LOCAL_MAC_ADDRESS, LOCAL_IP_ADDRESS, REMOTE_IP_ADDRESS
+    global LOCAL_DEVICE, LOCAL_MAC_ADDRESS, LOCAL_IP_ADDRESS, \
+        REMOTE_MAC_ADDRESS, REMOTE_IP_ADDRESS
     
     LOCAL_DEVICE = sys.argv[1]
     LOCAL_MAC_ADDRESS = shared.get_local_mac_addres_of_device(LOCAL_DEVICE)
@@ -129,7 +130,17 @@ def main():
     
     fd = bpf.get_bpf_fg(device=LOCAL_DEVICE)
     
-    LOCAL_IP_ADDRESS = shared.request_dhcp_info(fd, LOCAL_MAC_ADDRESS)['yiaddr']
+    dhcp_info = shared.request_dhcp_info(fd, LOCAL_MAC_ADDRESS)
+    
+    LOCAL_IP_ADDRESS = dhcp_info['yiaddr']
+    SUBNET_MASK = dhcp_info['subnet_mask']
+    
+    if SUBNET_MASK.addresses_in_same_subnet(LOCAL_IP_ADDRESS, REMOTE_IP_ADDRESS):
+        NEXT_HOOP_IP_ADDRESS = REMOTE_IP_ADDRESS
+    else:
+        NEXT_HOOP_IP_ADDRESS = dhcp_info['router']
+
+    REMOTE_MAC_ADDRESS = shared.request_adp_mac_addres(fd, LOCAL_MAC_ADDRESS, LOCAL_IP_ADDRESS, NEXT_HOOP_IP_ADDRESS)
     
     ping(fd)
     

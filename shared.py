@@ -21,7 +21,7 @@ def get_local_mac_addres_of_device(dev):
             return MACAddres(colon_hex_str = line[len(IFCONFIG_MAC_ADDRESS_LINE):])
 
 
-def request_dhcp_info(fd, local_mac_address, timeout=5.0):
+def request_dhcp_info(fd, local_mac_address, timeout=2.0):
     
     # DISCOVERY
     
@@ -208,7 +208,7 @@ def request_dhcp_info(fd, local_mac_address, timeout=5.0):
     
     return return_dict
 
-def request_adp_mac_addres(fd, local_mac_address, local_ip_address, remote_ip_address, timeout=2.0):
+def request_adp_mac_addres(fd, local_mac_address, local_ip_address, remote_ip_address, timeout=1.0):
     
     eth = Ethernet(data_dict=dict(
         dmac=MACAddres(colon_hex_str='ff:ff:ff:ff:ff:ff'),
