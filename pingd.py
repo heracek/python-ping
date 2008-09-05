@@ -21,8 +21,8 @@ def print_debug(what, force=False):
         print what
     elif force:
         print what.__str__(parents=True)
-        #x = what.raw_val()
-        #print repr(raw_packet), raw_packet == x, len(raw_packet)
+        x = what.raw_val()
+        print repr(raw_packet), raw_packet == x, len(raw_packet)
         
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
@@ -62,7 +62,7 @@ def eth_packet_callback(eth_packet):
 def main():
     if len(sys.argv) != 3:
         if len(sys.argv) == 1:
-            sys.argv.extend(['en0', '192.168.1.1'])
+            sys.argv.extend(['en1', '192.168.1.1'])
             print 'using defaul args:', ' '.join(sys.argv)
         else:
             print 'usage: %s dev host' % sys.argv[0]

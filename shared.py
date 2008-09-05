@@ -1,7 +1,7 @@
 import os
 import random
 
-from wrappers import Ethernet, IPv4, UDP, DHCP
+from wrappers import Ethernet, IPv4, UDP, DHCP, DHCPOptions, DHCPOption
 from fields import MACAddres, IPAddress
 
 IFCONFIG_MAC_ADDRESS_LINE = '\tether'
@@ -43,7 +43,7 @@ def request_ip_address(fd, local_mac_address):
     udp = UDP(parent=ipv4, data_dict=dict(
         sport=68,
         dport=67,
-        length=308,
+        length=0, # !!!
         checksum=0x0000,
     ))
     
@@ -62,20 +62,35 @@ def request_ip_address(fd, local_mac_address):
         chaddr=local_mac_address,
         _bootp_legacy='\x00' * 202,
         magic_cookie=0x63825363,
-        dhcp_options=IPAddress(str_val='1.2.3.4')
-        # dhcp_options=<DHCPOptions
-        #     option(t=53 [dhcp_message_type], l=1): 03
-        #     option(t=55 [parameter_request_list], l=10): 01 03 06 0f 77 5f fc 2c 2e 2f
-        #     option(t=57 [maximum_dhcp_message_size], l=2): 05 dc
-        #     option(t=61 [client_identifier], l=7): 01 00 17 f2 f3 55 77
-        #     option(t=50 [requested_ip_address], l=4): 192.168.1.4
-        #     option(t=51 [ip_address_lease_time], l=4): 00 76 a7 00>
+        dhcp_options=DHCPOptions(dhcp_options=[
+            DHCPOption(dhcp_options=chr(53) + '\x01\x03'),
+            
+            DHCPOption(dhcp_options='\xff'),
+            DHCPOption(dhcp_options='\x00' * 19),
+        ])
     ))
     
     udp.payload = dhcp.raw_val(parents=False)
+    print len(udp.payload)
+    
+    udp.length.val = len(udp.payload)
     udp.compute_checksum()
+    print udp.length
+    
+    ipv4.total_length.val = len(ipv4.raw_val(parents=False)) + len(udp.raw_val(parents=False)) + len(udp.payload)
     ipv4.compute_checksum()
+    print ipv4.total_length
     
     print repr(dhcp.raw_val()), len(dhcp.raw_val())
+    
+    os.write(fd, dhcp.raw_val())
 
-#request_ip_address(1, MACAddres(colon_hex_str='00:17:f2:f3:55:77'))
+if __name__ == '__main__':
+    import bpf
+    
+    LOCAL_DEVICE = 'en1'
+    
+    LOCAL_MAC_ADDRESS = get_local_mac_addres_of_device(LOCAL_DEVICE)
+    fd = bpf.get_bpf_fg(device=LOCAL_DEVICE)
+    
+    request_ip_address(fd, LOCAL_MAC_ADDRESS)

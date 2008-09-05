@@ -210,8 +210,11 @@ class IPv4(Wrapper):
         
         self.header_checksum.val = utils.cksum(packet)
         
-        return self.header_checksum
+        return self.header_checksum.val
     
+    def compute_length(self):
+        self.total_length.val = len(self.payload) + self.header_length.val * 4
+        return self.total_length.val
 
 class UDP(Wrapper):
     
@@ -248,6 +251,10 @@ class UDP(Wrapper):
         self.checksum.val = utils.cksum(ipv4_pseudo_header + self.raw_val(parents=False) + self.payload)
         
         return self.checksum.val
+    
+    def compute_length(self):
+        self.length.val = len(self.payload) + 8
+        return self.length.val
 
 class DHCPOption(object):
     OPTION_NAMES = {
@@ -331,11 +338,10 @@ class DHCPOption(object):
         
     
 class DHCPOptions(object):
-    def __init__(self, dhcp_options):
+    def __init__(self, dhcp_options):        
         if type(dhcp_options) in (list, tuple):
-            pass
+            self.options = list(dhcp_options)
         else:
-            self._raw_val = dhcp_options
             self.options = []
             
             max_options_index = len(dhcp_options)
@@ -399,7 +405,8 @@ class DHCP(Wrapper):
     
     def __init__(self, parent, data_dict=None):
         super(DHCP, self).__init__(parent=parent, data_dict=data_dict)
-        self.dhcp_options = DHCPOptions(self.payload)
+        if data_dict is None:
+            self.dhcp_options = DHCPOptions(self.payload)
 
 class ICMP(Wrapper):
     

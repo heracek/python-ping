@@ -315,60 +315,135 @@ True
 #---------------------------------------------------------#
 
 >>> from wrappers import UDP, DHCP
->>> dhcp_raw_packet_1 = '\\x00\\x17\\xf2\\xf3Uw\\x00\\x1a\\x92b1L\\x08\\x00E\\x00\\x02@\\x00\\x00\\x00\\x00@\\x11\\xf5W\\xc0\\xa8\\x01\\x01\\xc0\\xa8\\x01\\x04\\x00C\\x00D\\x02,_\\xdc\\x02\\x01\\x06\\x003\\xa3L\\x1b\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xc0\\xa8\\x01\\x04\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x17\\xf2\\xf3Uw\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00c\\x82Sc5\\x01\\x056\\x04\\xc0\\xa8\\x01\\x013\\x04\\x00\\x01Q\\x80\\x01\\x04\\xff\\xff\\xff\\x00\\x03\\x04\\xc0\\xa8\\x01\\x01\\x06\\x04\\xc0\\xa8\\x01\\x01\\xff\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'
->>> eth_3 = Ethernet(dhcp_raw_packet_1)
->>> ipv4_4 = IPv4(parent=eth_3)
->>> udp_2 = UDP(parent=ipv4_4)
->>> dhcp_1 = DHCP(parent=udp_2)
->>> print dhcp_1.__str__(parents=True)
+>>> dhcp_raw_packet_4 = '\\xff\\xff\\xff\\xff\\xff\\xff\\x00\\x19\\xe3\\x02\\xd9+\\x08\\x00E\\x00\\x01H3\\xa1\\x00\\x00\\xff\\x11\\x87\\x04\\x00\\x00\\x00\\x00\\xff\\xff\\xff\\xff\\x00D\\x00C\\x014\\x80\\x82\\x01\\x01\\x06\\x00O\\xe33\\x9b\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x19\\xe3\\x02\\xd9+\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00c\\x82Sc5\\x01\\x037\\n\\x01\\x03\\x06\\x0fw_\\xfc,./9\\x02\\x05\\xdc=\\x07\\x01\\x00\\x19\\xe3\\x02\\xd9+2\\x04\\xc0\\xa8\\x01\\x023\\x04\\x00v\\xa7\\x00\\xff\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'
+>>> eth_4 = Ethernet(dhcp_raw_packet_4)
+>>> ipv4_4 = IPv4(parent=eth_4)
+>>> udp_4 = UDP(parent=ipv4_4)
+>>> dhcp_4 = DHCP(parent=udp_4)
+>>> print dhcp_4.__str__(parents=True)
 <Ethernet 
-    dmac=00:17:f2:f3:55:77
-    smac=00:1a:92:62:31:4c
+    dmac=ff:ff:ff:ff:ff:ff
+    smac=00:19:e3:02:d9:2b
     type=0x0800>
     <IPv4 
         version=4
         header_length=5
         type_of_service=0x00
-        total_length=576
-        identification=0x0000
+        total_length=328
+        identification=0x33a1
         flags=0x0
         fragment_offset=0
-        time_to_live=64
+        time_to_live=255
         protocol=0x11
-        header_checksum=0xf557
-        saddr=192.168.1.1
-        daddr=192.168.1.4>
+        header_checksum=0x8704
+        saddr=0.0.0.0
+        daddr=255.255.255.255>
         <UDP 
-            sport=67
-            dport=68
-            length=556
-            checksum=0x5fdc>
+            sport=68
+            dport=67
+            length=308
+            checksum=0x8082>
             <DHCP 
-                op=0x02
+                op=0x01
                 htype=0x01
                 hlen=0x06
                 hops=0x00
-                xid=0x33a34c1b
+                xid=0x4fe3339b
                 secs=0x0000
                 flags=0x0000
                 ciaddr=0.0.0.0
-                yiaddr=192.168.1.4
+                yiaddr=0.0.0.0
                 siaddr=0.0.0.0
                 giaddr=0.0.0.0
-                chaddr=00:17:f2:f3:55:77
+                chaddr=00:19:e3:02:d9:2b
                 magic_cookie=0x63825363
                 dhcp_options=<DHCPOptions
-                    option(t=53 [dhcp_message_type], l=1): 05
-                    option(t=54 [server_identifier], l=4): 192.168.1.1
-                    option(t=51 [ip_address_lease_time], l=4): 00 01 51 80
-                    option(t=1 [subnet_mask], l=4): 255.255.255.0
-                    option(t=3 [router], l=4): 192.168.1.1
-                    option(t=6 [domain_name_server], l=4): 192.168.1.1
+                    option(t=53 [dhcp_message_type], l=1): 03
+                    option(t=55 [parameter_request_list], l=10): 01 03 06 0f 77 5f fc 2c 2e 2f
+                    option(t=57 [maximum_dhcp_message_size], l=2): 05 dc
+                    option(t=61 [client_identifier], l=7): 01 00 19 e3 02 d9 2b
+                    option(t=50 [requested_ip_address], l=4): 192.168.1.2
+                    option(t=51 [ip_address_lease_time], l=4): 00 76 a7 00
                     option(t=255 [end], l=0): 
-                    option(t=0 [pad], l=273): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00>
+                    option(t=0 [pad], l=18): 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00>
 
->>> dhcp_1.raw_val() == dhcp_raw_packet_1
+>>> dhcp_4.raw_val() == dhcp_raw_packet_4
 True
+
+
+>>> from wrappers import DHCPOptions, DHCPOption
+>>> eth_5 = Ethernet(data_dict=dict( \
+    dmac=MACAddres(colon_hex_str='ff:ff:ff:ff:ff:ff'), \
+    smac=MACAddres(colon_hex_str='00:19:e3:02:d9:2b'), \
+    type=0x0800 \
+))
+>>> ipv4_5 = IPv4(parent=eth_5, data_dict=dict( \
+    version=4, \
+    header_length=5, \
+    type_of_service=0x00, \
+    total_length=0, \
+    identification=0x33a1, \
+    flags=0x0, \
+    fragment_offset=0, \
+    time_to_live=255, \
+    protocol=0x11, \
+    header_checksum=0x0000, \
+    saddr=IPAddress(str_val='0.0.0.0'), \
+    daddr=IPAddress(str_val='255.255.255.255'), \
+))
+>>> udp_5 = UDP(parent=ipv4_5, data_dict=dict( \
+    sport=68, \
+    dport=67, \
+    length=0, \
+    checksum=0x0000, \
+))
+>>> dhcp_5 = DHCP(parent=udp_5, data_dict=dict( \
+    op=0x01, \
+    htype=0x01, \
+    hlen=0x06, \
+    hops=0x00, \
+    xid=0x4fe3339b, \
+    secs=0x0000, \
+    flags=0x0000, \
+    ciaddr=IPAddress(str_val='0.0.0.0'), \
+    yiaddr=IPAddress(str_val='0.0.0.0'), \
+    siaddr=IPAddress(str_val='0.0.0.0'), \
+    giaddr=IPAddress(str_val='0.0.0.0'), \
+    chaddr=MACAddres(colon_hex_str='00:19:e3:02:d9:2b'), \
+    _bootp_legacy='\\x00' * 202, \
+    magic_cookie=0x63825363, \
+    dhcp_options=DHCPOptions(dhcp_options=[ \
+        DHCPOption(dhcp_options=chr(53) + chr(1) + '\\x03'), \
+        DHCPOption(dhcp_options=chr(55) + chr(10) + '\\x01\\x03\\x06\\x0f\\x77\\x5f\\xfc\\x2c\\x2e\\x2f'), \
+        DHCPOption(dhcp_options=chr(57) + chr(2) + '\\x05\\xdc'), \
+        DHCPOption(dhcp_options=chr(61) + chr(7) + '\\x01\\x00\\x19\\xe3\\x02\\xd9\\x2b'), \
+        DHCPOption(dhcp_options=chr(50) + chr(4) + IPAddress(str_val='192.168.1.2').raw_val()), \
+        DHCPOption(dhcp_options=chr(51) + chr(4) + '\\x00\\x76\\xa7\\x00'), \
+        DHCPOption(dhcp_options='\\xff'), \
+        DHCPOption(dhcp_options='\\x00' * 19), \
+    ]) \
+))
+
+>>> len(dhcp_5.raw_val()), len(dhcp_raw_packet_4)
+(342, 342)
+
+>>> udp_5.payload = dhcp_5.raw_val(parents=False)
+>>> udp_5.compute_length()
+308
+>>> udp_5.length.val, udp_4.length.val
+(308, 308)
+>>> print hex(udp_5.compute_checksum())
+0x8082
+
+>>> ipv4_5.payload = udp_5.raw_val(parents=False) + udp_5.payload
+>>> ipv4_5.compute_length()
+328
+>>> print hex(ipv4_5.compute_checksum())
+0x8704
+
+>>> dhcp_5.raw_val() == dhcp_raw_packet_4
+True
+
 
 ###############################################################################
 ### compute_checksum()                                                      ###
@@ -426,7 +501,7 @@ True
 
 >>> ipv4_3.raw_val(parents=False)
 'E\\x00\\x004\\xe9\\xbb@\\x003\\x06\\x00\\x00>2I\\x0c\\xc0\\xa8\\x01\\x02'
->>> print ipv4_3.compute_checksum()
+>>> print hex(ipv4_3.compute_checksum())
 0x1520
 >>> ipv4_3.raw_val(parents=False) # after compute_checksum()
 'E\\x00\\x004\\xe9\\xbb@\\x003\\x06\\x15 >2I\\x0c\\xc0\\xa8\\x01\\x02'
