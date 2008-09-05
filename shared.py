@@ -65,14 +65,18 @@ def request_ip_address(fd, local_mac_address, timeout=5.0):
         _bootp_legacy='\x00' * 202,
         magic_cookie=0x63825363,
         dhcp_options=DHCPOptions(dhcp_options=[
-            DHCPOption(dhcp_options=chr(53) + chr(1) + '\x03'), # dhcp_message_type
-            DHCPOption(dhcp_options=chr(55) + chr(10) + '\x01\x03\x06\x0f\x77\x5f\xfc\x2c\x2e\x2f'), # parameter_request_list
-            DHCPOption(dhcp_options=chr(57) + chr(2) + '\x05\xdc'), # maximum_dhcp_message_size
-            DHCPOption(dhcp_options=chr(61) + chr(7) + '\x01\x00\x19\xe3\x02\xd9\x2b'), # client_identifier
-            DHCPOption(dhcp_options=chr(50) + chr(4) + IPAddress(str_val='192.168.1.2').raw_val()), # requested_ip_address
-            DHCPOption(dhcp_options=chr(51) + chr(4) + '\x00\x76\xa7\x00'), # ip_address_lease_time (90 days)
+            DHCPOption(dhcp_options=chr(53) + chr(1) + '\x01'), # dhcp_message_type
             DHCPOption(dhcp_options='\xff'),
             DHCPOption(dhcp_options='\x00' * 19),
+
+            # DHCPOption(dhcp_options=chr(53) + chr(1) + '\x03'), # dhcp_message_type
+            # DHCPOption(dhcp_options=chr(55) + chr(10) + '\x01\x03\x06\x0f\x77\x5f\xfc\x2c\x2e\x2f'), # parameter_request_list
+            # DHCPOption(dhcp_options=chr(57) + chr(2) + '\x05\xdc'), # maximum_dhcp_message_size
+            # DHCPOption(dhcp_options=chr(61) + chr(7) + '\x01\x00\x19\xe3\x02\xd9\x2b'), # client_identifier
+            # DHCPOption(dhcp_options=chr(50) + chr(4) + IPAddress(str_val='192.168.1.2').raw_val()), # requested_ip_address
+            # DHCPOption(dhcp_options=chr(51) + chr(4) + '\x00\x76\xa7\x00'), # ip_address_lease_time (90 days)
+            # DHCPOption(dhcp_options='\xff'),
+            # DHCPOption(dhcp_options='\x00' * 19),
         ])
     ))
     
@@ -90,7 +94,12 @@ def request_ip_address(fd, local_mac_address, timeout=5.0):
     try:
         while True:
             end_time = time.time()
-            packet = bpf.read_packet(fd, timeout=(timeout - (end_time - start_time)))
+            
+            rest_of_timeout = timeout - (end_time - start_time)
+            if rest_of_timeout <= 0.0:
+                raise bpf.BPFTimeout()
+            
+            packet = bpf.read_packet(fd, timeout=rest_of_timeout)
             
             in_eth = Ethernet(packet.data)
             is_valid_dhcp = False
@@ -113,21 +122,29 @@ def request_ip_address(fd, local_mac_address, timeout=5.0):
                                 and in_dhcp.htype == 0x01 \
                                 and in_dhcp.xid == dhcp.xid \
                                 and in_dhcp.chaddr == local_mac_address \
-                                and in_dhcp.magic_cookie == 0x63825363:
+                                and in_dhcp.magic_cookie == 0x63825363 \
+                                and in_dhcp.dhcp_options.get('dhcp_message_type') == '\x02':
                                 
-                                print 'ok!'
-                                print in_dhcp
+                                return_dict = { 'yiaddr': in_dhcp.yiaddr }
+                                for name in ('router', 'domain_name_server', 'subnet_mask'):
+                                    return_dict[name] = in_dhcp.dhcp_options.get(name)[0]
                                 
-            
+                                is_valid_dhcp = True
+            if is_valid_dhcp:
+                break
     except bpf.BPFTimeout:
         print 'request_ip_address(local_mac_address=%s) timed out!' % local_mac_address
         sys.exit(1)
+        
     bpf.bpf_dispose(fd)
+    
+    print return_dict
+    return return_dict
 
 if __name__ == '__main__':
     import bpf
     
-    LOCAL_DEVICE = 'en1'
+    LOCAL_DEVICE = 'en0'
     
     LOCAL_MAC_ADDRESS = get_local_mac_addres_of_device(LOCAL_DEVICE)
     fd = bpf.get_bpf_fg(device=LOCAL_DEVICE)

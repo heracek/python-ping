@@ -104,6 +104,9 @@ class IPAddress(Field):
         addr_segments = [str((self.bin_val >> shift) % 256) for shift in (24, 16, 8, 0)]
         return '.'.join(addr_segments)
     
+    def __repr__(self):
+        return '<IP address %s>' % self.__str__()
+    
     def raw_val(self, struct_fmt=None):
         return struct.pack('!L', self.bin_val)
 

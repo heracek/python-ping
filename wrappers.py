@@ -313,13 +313,12 @@ class DHCPOption(object):
         else:
             name_str = ''
         
-        if self.type:
-            val_list = []
-            for i in xrange(0, self.len, self.unit_len):
-                val_list.append(str(self.type(self.value[i:i + self.unit_len])))
-            val = ', '.join(val_list)
+        obj_val = self.get_value()
+        
+        if isinstance(obj_val, list):
+            val = ', '.join(map(str, obj_val))
         else:
-            val = utils.bin2hex(self.value)
+            val = utils.bin2hex(obj_val)
         
         return 'option(t=%i%s, l=%i): %s' % (
             self.option,
@@ -327,6 +326,13 @@ class DHCPOption(object):
             self.len,
             val,
         )
+    
+    def get_value(self):
+        if self.type:
+            return [self.type(self.value[i:i + self.unit_len]) for i in xrange(0, self.len, self.unit_len) ]
+        
+        return self.value
+            
     
     def raw_val(self):
         if self.option in (0x00, 0xff):
@@ -380,6 +386,18 @@ class DHCPOptions(object):
     def raw_val(self, struct_fmt=None):
         output_list = [option.raw_val() for option in self.options]
         return ''.join(output_list)
+    
+    def get(self, option_name):
+        if not hasattr(DHCPOption, '_REVERSE_OPTION_NAMES'):
+            DHCPOption._REVERSE_OPTION_NAMES = \
+                dict([(value, key) for (key, value) in DHCPOption.OPTION_NAMES.items()])
+        
+        option_id = DHCPOption._REVERSE_OPTION_NAMES[option_name]
+        
+        for option in self.options:
+            if option.option == option_id:
+                return option.get_value()
+                
 
 class DHCP(Wrapper):
     

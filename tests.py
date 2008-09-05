@@ -370,6 +370,11 @@ True
 >>> dhcp_4.raw_val() == dhcp_raw_packet_4
 True
 
+>>> dhcp_4.dhcp_options.get('dhcp_message_type')
+'\\x03'
+>>> dhcp_4.dhcp_options.get('requested_ip_address')
+[<IP address 192.168.1.2>]
+
 
 >>> from wrappers import DHCPOptions, DHCPOption
 >>> eth_5 = Ethernet(data_dict=dict( \
