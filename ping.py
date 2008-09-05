@@ -14,7 +14,7 @@ from fields import MACAddres, IPAddress
 
 LOCAL_DEVICE = None
 LOCAL_MAC_ADDRESS = None
-LOCAL_IP_ADDRESS = IPAddress(str_val='192.168.1.2')
+LOCAL_IP_ADDRESS = None
 
 REMOTE_MAC_ADDRESS = MACAddres(colon_hex_str='00:1a:92:62:31:4c')
 REMOTE_IP_ADDRESS = None
@@ -121,13 +121,15 @@ def main():
             print '\thost ... ip address of host'
             sys.exit(1)
     
-    global LOCAL_DEVICE, LOCAL_MAC_ADDRESS, REMOTE_IP_ADDRESS
+    global LOCAL_DEVICE, LOCAL_MAC_ADDRESS, LOCAL_IP_ADDRESS, REMOTE_IP_ADDRESS
     
     LOCAL_DEVICE = sys.argv[1]
     LOCAL_MAC_ADDRESS = shared.get_local_mac_addres_of_device(LOCAL_DEVICE)
     REMOTE_IP_ADDRESS = IPAddress(str_val=sys.argv[2])
     
     fd = bpf.get_bpf_fg(device=LOCAL_DEVICE)
+    
+    LOCAL_IP_ADDRESS = shared.request_dhcp_info(fd, LOCAL_MAC_ADDRESS)['yiaddr']
     
     ping(fd)
     

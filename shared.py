@@ -3,6 +3,7 @@ import sys
 import random
 import time
 
+import bpf
 from wrappers import Ethernet, IPv4, UDP, DHCP, DHCPOptions, DHCPOption
 from fields import MACAddres, IPAddress
 
@@ -71,15 +72,6 @@ def request_dhcp_info(fd, local_mac_address, timeout=5.0):
             DHCPOption(dhcp_options=chr(53) + chr(1) + '\x01'), # dhcp_message_type
             DHCPOption(dhcp_options='\xff'),
             DHCPOption(dhcp_options='\x00' * 19),
-
-            # DHCPOption(dhcp_options=chr(53) + chr(1) + '\x03'), # dhcp_message_type
-            # DHCPOption(dhcp_options=chr(55) + chr(10) + '\x01\x03\x06\x0f\x77\x5f\xfc\x2c\x2e\x2f'), # parameter_request_list
-            # DHCPOption(dhcp_options=chr(57) + chr(2) + '\x05\xdc'), # maximum_dhcp_message_size
-            # DHCPOption(dhcp_options=chr(61) + chr(7) + '\x01\x00\x19\xe3\x02\xd9\x2b'), # client_identifier
-            # DHCPOption(dhcp_options=chr(50) + chr(4) + IPAddress(str_val='192.168.1.2').raw_val()), # requested_ip_address
-            # DHCPOption(dhcp_options=chr(51) + chr(4) + '\x00\x76\xa7\x00'), # ip_address_lease_time (90 days)
-            # DHCPOption(dhcp_options='\xff'),
-            # DHCPOption(dhcp_options='\x00' * 19),
         ])
     ))
     
@@ -213,9 +205,6 @@ def request_dhcp_info(fd, local_mac_address, timeout=5.0):
     except bpf.BPFTimeout:
         print 'request_dhcp_info(local_mac_address=%s) timed out!' % local_mac_address
         sys.exit(1)
-    
-    
-    bpf.bpf_dispose(fd)
     
     return return_dict
 
