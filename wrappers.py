@@ -288,7 +288,7 @@ class DHCPOption(object):
             self.len = max_i
             
         elif self.option == 0xff:
-            self.len = -1 # hacks >>options_index += 2 + option.len<< in DHCPOptions
+            self.len = 0
         else:
             self.len = ord(dhcp_options[1])
             self.value = dhcp_options[2:2 + self.len]
@@ -340,13 +340,24 @@ class DHCPOptions(object):
             
             max_options_index = len(dhcp_options)
             options_index = 0
+            end_options_on_pad = False
             while options_index < max_options_index:
-                option = DHCPOption(dhcp_options[options_index:])
-                #if option.option == 0xff:
-                #    break
+                if end_options_on_pad and dhcp_options[options_index] == '\x00':
+                    option = DHCPOption('\x00')
+                    option.value = dhcp_options[options_index + 1:]
+                    option.len = len(option.value)
+                else:
+                    option = DHCPOption(dhcp_options[options_index:])
+
+                if option.option == 0xff:
+                    end_options_on_pad = True
                 self.options.append(option)
                 
-                options_index += 2 + option.len
+                header_len = 2
+                if option.option in (0x00, 0xff):
+                    header_len = 1
+                
+                options_index += header_len + option.len
     
     def __str__(self, level=None):
         if level is None:
@@ -381,10 +392,14 @@ class DHCP(Wrapper):
         ('chaddr', '6s', fields.MACAddres),
         ('_bootp_legacy', '202s', None),
         ('magic_cookie', '!L', fields.HexInt(8)),
-        ('dhcp_options', '60s', DHCPOptions),
+        ('dhcp_options', '0s', str),
     ]
     
     _LEVEL_ = 3
+    
+    def __init__(self, parent, data_dict=None):
+        super(DHCP, self).__init__(parent=parent, data_dict=data_dict)
+        self.dhcp_options = DHCPOptions(self.payload)
 
 class ICMP(Wrapper):
     
