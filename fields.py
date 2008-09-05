@@ -106,3 +106,9 @@ class IPAddress(Field):
     
     def raw_val(self, struct_fmt=None):
         return struct.pack('!L', self.bin_val)
+
+class IPAddressFromBinStr(IPAddress):
+    
+    def __init__(self, bin_str):
+        bin_val = struct.unpack('!L', bin_str)[0]
+        super(IPAddressFromBinStr, self).__init__(bin_val=bin_val)

@@ -229,10 +229,11 @@ class UDP(Wrapper):
     
     _LEVEL_ = 2
     
-    def __init__(self, parent):
-        super(UDP, self).__init__(parent=parent)
-        self.payload = parent.payload[8:]
-        self.len = len(self.payload)
+    def __init__(self, parent, data_dict=None):
+        super(UDP, self).__init__(parent=parent, data_dict=data_dict)
+        if hasattr(parent, 'payload'):
+            self.payload = parent.payload[8:]
+            self.len = len(self.payload)
     
     def compute_checksum(self):
         self.checksum.val = 0
@@ -249,33 +250,103 @@ class UDP(Wrapper):
         return self.checksum.val
 
 class DHCPOption(object):
+    OPTION_NAMES = {
+        0 : 'pad',
+        1 : 'subnet_mask',
+        2 : 'time_offset',
+        3 : 'router',
+        4 : 'time_server',
+        5 : 'name_server',
+        6 : 'domain_name_server',
+        7 : 'log_server',
+        8 : 'cookie_server',
+        50 : 'requested_ip_address',
+        51 : 'ip_address_lease_time',
+        53 : 'dhcp_message_type',
+        54 : 'server_identifier',
+        55 : 'parameter_request_list',
+        57 : 'maximum_dhcp_message_size',
+        61 : 'client_identifier',
+        255 : 'end',
+    }
+    
+    IP_ADDRESS_OPTIONS = (1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 50, 54)
+    
     def __init__(self, dhcp_options):
         self.option = ord(dhcp_options[0])
+        self.type = None
+        self.value = ''
+        self.name = self.OPTION_NAMES.get(self.option, None)
         
-        if not self.option == 0xff:
+        if self.option == 0x00:
+            max_i = len(dhcp_options)
+            for i in xrange(1, len(dhcp_options)):
+                if dhcp_options[i] != '\x00':
+                    max_i = i
+                    break
+            self.value = dhcp_options[1:max_i]
+            self.len = max_i
+            
+        elif self.option == 0xff:
+            self.len = -1 # hacks >>options_index += 2 + option.len<< in DHCPOptions
+        else:
             self.len = ord(dhcp_options[1])
             self.value = dhcp_options[2:2 + self.len]
-    
+            
+            self.unit_len = self.len
+            
+            if self.option in self.IP_ADDRESS_OPTIONS:
+                self.unit_len = 4
+                self.type = fields.IPAddressFromBinStr
+                
+            
     def __str__(self):
-        return 'option(t=%i, l=%i): %s' % (
+        if self.name:
+            name_str = ' [%s]' % self.name
+        else:
+            name_str = ''
+        
+        if self.type:
+            val_list = []
+            for i in xrange(0, self.len, self.unit_len):
+                val_list.append(str(self.type(self.value[i:i + self.unit_len])))
+            val = ', '.join(val_list)
+        else:
+            val = utils.bin2hex(self.value)
+        
+        return 'option(t=%i%s, l=%i): %s' % (
             self.option,
+            name_str,
             self.len,
-            ' '.join(['%02x' % ord(ch) for ch in self.value]),
+            val,
         )
+    
+    def raw_val(self):
+        if self.option in (0x00, 0xff):
+            len_str = ''
+        else:
+            len_str = chr(self.len)
+        
+        return chr(self.option) + len_str + self.value
+        
     
 class DHCPOptions(object):
     def __init__(self, dhcp_options):
-        self._raw_val = dhcp_options
-        self.options = []
-        
-        options_index = 0
-        while True:
-            option = DHCPOption(dhcp_options[options_index:])
-            if option.option == 0xff:
-                break
-            self.options.append(option)
+        if type(dhcp_options) in (list, tuple):
+            pass
+        else:
+            self._raw_val = dhcp_options
+            self.options = []
             
-            options_index += 2 + option.len
+            max_options_index = len(dhcp_options)
+            options_index = 0
+            while options_index < max_options_index:
+                option = DHCPOption(dhcp_options[options_index:])
+                #if option.option == 0xff:
+                #    break
+                self.options.append(option)
+                
+                options_index += 2 + option.len
     
     def __str__(self, level=None):
         if level is None:
@@ -290,7 +361,8 @@ class DHCPOptions(object):
             field_separator.join([str(option) for option in self.options]))
     
     def raw_val(self, struct_fmt=None):
-        return self._raw_val
+        output_list = [option.raw_val() for option in self.options]
+        return ''.join(output_list)
 
 class DHCP(Wrapper):
     
