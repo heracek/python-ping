@@ -52,16 +52,16 @@ class MACAddres(Field):
         '''
         self.num_val = None
         
-        if bin_val:
+        if bin_val is not None:
             pure_hex_str = bin2hex(bin_val, '')
-        if colon_hex_str:
+        if colon_hex_str is not None:
             pure_hex_str = ''.join([ch for ch in colon_hex_str if ch.isalnum()])
-        if pure_hex_str:
+        if pure_hex_str is not None:
             self.num_val = int(pure_hex_str, 16)
-        if num_val:
+        if num_val is not None:
             self.num_val = num_val
         
-        if not self.num_val:
+        if self.num_val is None:
             raise Exception('Missing arguments')
             
     

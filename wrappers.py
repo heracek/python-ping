@@ -447,3 +447,20 @@ class ICMP(Wrapper):
     
     def len(self):
         return len(self.raw_val(parents=False)) + len(self.payload)
+
+class ARP(Wrapper):
+    
+    _fields_ = [
+        ('htype', '!H', fields.HexInt(4)),
+        ('ptype', '!H', fields.HexInt(4)),
+        ('hlen', 'B', fields.HexInt(4)),
+        ('plen', 'B', fields.HexInt(4)),
+        ('oper', '!H', fields.HexInt(4)),
+        ('sha', '6s', fields.MACAddres),
+        ('spa', '!L', fields.IPAddress),
+        ('tha', '6s', fields.MACAddres),
+        ('tpa', '!L', fields.IPAddress),
+    ]
+    
+    _LEVEL_ = 1
+    

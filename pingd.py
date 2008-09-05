@@ -7,7 +7,7 @@ import sys
 
 import bpf
 from utils import bin2hex
-from wrappers import Ethernet, IPv4, UDP, DHCP, ICMP
+from wrappers import Ethernet, IPv4, UDP, DHCP, ICMP, ARP
 
 LOCAL_DEVICE = None
 LOCAL_MAC_ADDRESS = None
@@ -21,12 +21,12 @@ def print_debug(what, force=False):
         print what
     elif force:
         print what.__str__(parents=True)
-        #x = what.raw_val()
-        #print repr(raw_packet), raw_packet == x, len(raw_packet)
+        x = what.raw_val()
+        print repr(raw_packet), len(raw_packet), x == raw_packet
         
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
-    print_debug(dhcp_packet, force=True)
+    print_debug(dhcp_packet, force=False)
     
 def udp_packet_callback(eth_packet, ip_packet, udp_packet):
     print_debug(udp_packet, force=False)
@@ -46,8 +46,9 @@ def ip_packet_callback(eth_packet, ip_packet):
         icmp_packet_callback(eth_packet, ip_packet, ICMP(parent=ip_packet))
 
 def arp_packet_callback(arp_packet):
-    print_debug('packet #%d:' % PACKET_COUNT)
-    print_debug('ARP packet: ' + str(arp_packet))
+    #print_debug('packet #%d:' % PACKET_COUNT)
+    #print_debug('ARP packet: ' + )
+    print_debug(arp_packet, force=True)
 
 def eth_packet_callback(eth_packet):
     global PACKET_COUNT
@@ -55,7 +56,7 @@ def eth_packet_callback(eth_packet):
     if eth_packet.type == Ethernet.TYPE_IP:
         ip_packet_callback(eth_packet, IPv4(parent=eth_packet))
     elif eth_packet.type == Ethernet.TYPE_ARP:
-        arp_packet_callback(eth_packet)
+        arp_packet_callback(ARP(parent=eth_packet))
 
     PACKET_COUNT += 1
 
