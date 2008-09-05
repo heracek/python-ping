@@ -21,8 +21,8 @@ def print_debug(what, force=False):
         print what
     elif force:
         print what.__str__(parents=True)
-        x = what.raw_val()
-        print repr(raw_packet), raw_packet == x, len(raw_packet)
+        #x = what.raw_val()
+        #print repr(raw_packet), raw_packet == x, len(raw_packet)
         
 
 def dhcp_packet_callback(eth_packet, ip_packet, udp_packet, dhcp_packet):
