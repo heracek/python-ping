@@ -4,7 +4,7 @@ import random
 import time
 
 import bpf
-from wrappers import Ethernet, IPv4, UDP, DHCP, DHCPOptions, DHCPOption
+from wrappers import Ethernet, IPv4, UDP, DHCP, DHCPOptions, DHCPOption, ARP
 from fields import MACAddres, IPAddress
 
 IFCONFIG_MAC_ADDRESS_LINE = '\tether'
@@ -208,3 +208,72 @@ def request_dhcp_info(fd, local_mac_address, timeout=5.0):
     
     return return_dict
 
+def request_adp_mac_addres(fd, local_mac_address, local_ip_address, remote_ip_address, timeout=2.0):
+    
+    eth = Ethernet(data_dict=dict(
+        dmac=MACAddres(colon_hex_str='ff:ff:ff:ff:ff:ff'),
+        smac=local_mac_address,
+        type=Ethernet.TYPE_ARP,
+    ))
+    
+    arp = ARP(parent=eth, data_dict=dict(
+        htype=0x0001,
+        ptype=0x0800,
+        hlen=0x0006,
+        plen=0x0004,
+        oper=0x0001,
+        sha=local_mac_address,
+        spa=local_ip_address,
+        tha=MACAddres(colon_hex_str='00:00:00:00:00:00'),
+        tpa=remote_ip_address,
+    ))
+    
+    os.write(fd, arp.raw_val())
+    start_time = time.time()
+    
+    try:
+        while True:
+            end_time = time.time()
+            
+            rest_of_timeout = timeout - (end_time - start_time)
+            if rest_of_timeout <= 0.0:
+                raise bpf.BPFTimeout()
+            
+            packet = bpf.read_packet(fd, timeout=rest_of_timeout)
+            
+            in_eth = Ethernet(raw_data=packet.data)
+            
+            if in_eth.dmac == local_mac_address \
+                and in_eth.type == Ethernet.TYPE_ARP:
+                
+                in_arp = ARP(parent=in_eth)
+                
+                if in_arp.htype == 0x0001 \
+                    and in_arp.ptype == 0x0800 \
+                    and in_arp.hlen == 0x0006 \
+                    and in_arp.plen == 0x0004 \
+                    and in_arp.oper == 0x0002 \
+                    and in_arp.spa == remote_ip_address \
+                    and in_arp.tha == local_mac_address \
+                    and in_arp.tpa == local_ip_address:
+                    
+                    return in_arp.sha
+            
+    except bpf.BPFTimeout:
+        print 'request_adp_mac_addres(local_mac_address=%s, local_ip_address=%s, remote_ip_address=%s) timed out!' % (
+            local_mac_address, local_ip_address, remote_ip_address)
+        sys.exit(1)
+    
+if __name__ == '__main__':
+    LOCAL_DEVICE = 'en1'
+    REMOTE_IP_ADDRESS = IPAddress(str_val='192.168.1.1')
+    LOCAL_MAC_ADDRESS = get_local_mac_addres_of_device(LOCAL_DEVICE)
+    
+    fd = bpf.get_bpf_fg(device=LOCAL_DEVICE)
+    
+    LOCAL_IP_ADDRESS = request_dhcp_info(fd, LOCAL_MAC_ADDRESS)['yiaddr']
+    
+    print request_adp_mac_addres(fd, LOCAL_MAC_ADDRESS, LOCAL_IP_ADDRESS, REMOTE_IP_ADDRESS)
+    
+    bpf.bpf_dispose(fd)
+    

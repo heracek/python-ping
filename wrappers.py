@@ -171,7 +171,7 @@ class Ethernet(Wrapper):
     
     def __init__(self, raw_data=None, data_dict=None):
         super(Ethernet, self).__init__(raw_data, data_dict=data_dict)
-        if raw_data:
+        if raw_data is not None:
             self.payload = raw_data[14:]
 
 class IPv4(Wrapper):
