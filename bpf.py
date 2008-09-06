@@ -11,6 +11,7 @@ def u_int2int(u_int):
 BIOCIMMEDIATE = -2147204496
 BIOCSETIF = -2145369492
 BIOCGBLEN = 1074020966
+BIOCPROMISC = 536887913
 
 BPF_ALIGNMENT = 4
 BPF_WORDALIGN = lambda x: (((x)+(BPF_ALIGNMENT-1))&~(BPF_ALIGNMENT-1))
@@ -76,10 +77,13 @@ def packet_reader(fd, timeout=None):
                 
                 packet_index += BPF_WORDALIGN(header.bh_hdrlen + header.bh_caplen)
 
-def get_bpf_fg(device, nonblocking=False):
+def get_bpf_fg(device, nonblocking=False, promiscuous=False):
     fd = bpf_new()
     bpf_set_immediate(fd, 1)
     bpf_setif(fd, device)
+    
+    if promiscuous:
+        bpf_set_promiscuous(fd)
     
     if nonblocking:
         fcntl.fcntl(fd, fcntl.F_SETFL, os.O_NONBLOCK) # nonblocking reading - slows down CPU
@@ -99,6 +103,9 @@ def bpf_new():
         except:
             pass
     raise Exception('''Can't open any BPF.''')
+
+def bpf_set_promiscuous(fd):
+    return fcntl.ioctl(fd, BIOCPROMISC, '\x00' * 4)
 
 def bpf_set_immediate(fd, value):
     return fcntl.ioctl(fd, BIOCIMMEDIATE, struct.pack('I', value))

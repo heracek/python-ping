@@ -74,8 +74,8 @@ def ping(fd, timeout=1.0):
                 
                 is_valid_icmp = False
                 if in_eth.dmac == LOCAL_MAC_ADDRESS \
-                    and in_eth.smac == REMOTE_MAC_ADDRESS \
-                    and in_eth.type == 0x0800:
+                    and in_eth.type == Ethernet.TYPE_IP:
+                    # and in_eth.smac == REMOTE_MAC_ADDRESS
                     
                     in_ip = IPv4(parent=in_eth)
                     
@@ -141,6 +141,9 @@ def main():
         NEXT_HOOP_IP_ADDRESS = dhcp_info['router']
 
     REMOTE_MAC_ADDRESS = shared.request_adp_mac_addres(fd, LOCAL_MAC_ADDRESS, LOCAL_IP_ADDRESS, NEXT_HOOP_IP_ADDRESS)
+    
+    for var_name in ('LOCAL_DEVICE', 'LOCAL_MAC_ADDRESS', 'LOCAL_IP_ADDRESS', 'REMOTE_MAC_ADDRESS', 'REMOTE_IP_ADDRESS'):
+        print "%-20s %s" % (var_name + ':', globals()[var_name])
     
     ping(fd)
     
