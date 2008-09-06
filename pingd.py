@@ -1,15 +1,12 @@
 #!/usr/bin/env python
-import fcntl
 import os
-import re
-import shared
 import sys
 import random
-from copy import copy
 
 import bpf
+import shared
 from utils import bin2hex
-from wrappers import Ethernet, IPv4, UDP, DHCP, ICMP, ARP
+from wrappers import Ethernet, IPv4, ICMP, ARP
 from fields import MACAddres
 
 LOCAL_DEVICE = None
@@ -30,7 +27,7 @@ def pingd(fd):
     
     icmp_eth = Ethernet(data_dict=dict(
         dmac=None,
-        smac=copy(LOCAL_MAC_ADDRESS),
+        smac=LOCAL_MAC_ADDRESS,
         type=Ethernet.TYPE_IP,
     ))
     
@@ -59,7 +56,7 @@ def pingd(fd):
     
     arp_eth = Ethernet(data_dict=dict(
         dmac=None,
-        smac=copy(LOCAL_MAC_ADDRESS),
+        smac=LOCAL_MAC_ADDRESS,
         type=Ethernet.TYPE_ARP,
     ))
     
@@ -69,7 +66,7 @@ def pingd(fd):
         hlen=0x0006,
         plen=0x0004,
         oper=0x0002,
-        sha=copy(LOCAL_MAC_ADDRESS),
+        sha=LOCAL_MAC_ADDRESS,
         spa=LOCAL_IP_ADDRESS,
         tha=None,
         tpa=None,
@@ -104,7 +101,7 @@ def pingd(fd):
                         icmp_ipv4.daddr = in_ip.saddr
                         icmp_ipv4.identification.val += 1
                         
-                        icmp_eth.smac = copy(LOCAL_MAC_ADDRESS)
+                        icmp_eth.smac = LOCAL_MAC_ADDRESS
                         icmp_eth.dmac = in_eth.smac
                         
                         icmp.compute_checksum()
@@ -129,13 +126,13 @@ def pingd(fd):
                 and in_arp.oper == 0x0001 \
                 and in_arp.tpa == LOCAL_IP_ADDRESS:
                 
+                print 'Received ARP request from: %s (%s)' % (in_arp.spa, in_arp.sha)
+                
                 arp.tha = in_arp.sha
                 arp.tpa = in_arp.spa
                 arp._parent.dmac = in_arp.sha
                 
-                print 'Received ARP request from: %s (%s)' % (in_arp.spa, in_arp.sha)
-                
-                os.write(fd, arp.raw_val())    
+                os.write(fd, arp.raw_val())
 
 def main():
     if len(sys.argv) != 2:
@@ -143,7 +140,7 @@ def main():
             sys.argv.extend(['en1'])
             print 'using defaul args:', ' '.join(sys.argv)
         else:
-            print 'usage: %s dev host' % sys.argv[0]
+            print 'usage: %s dev' % sys.argv[0]
             print '\tdev ... device'
             sys.exit(1)
     
